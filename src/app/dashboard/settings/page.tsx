@@ -1,4 +1,7 @@
-import { updateTeamUser } from "@/app/dashboard/settings/actions";
+import {
+  resetTeamUserPassword,
+  updateTeamUser,
+} from "@/app/dashboard/settings/actions";
 import { AssetUploadForm } from "@/app/_frontend/components/settings/asset-upload-form";
 import { BusinessSettingsForm } from "@/app/_frontend/components/settings/business-settings-form";
 import { EmailSettingsForm } from "@/app/_frontend/components/settings/email-settings-form";
@@ -24,11 +27,24 @@ function AssetPath({
   value: string | null;
 }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-white/70 bg-white/55 px-3 py-2.5 shadow-[0_8px_18px_rgba(36,42,94,0.05)]">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="max-w-[220px] truncate font-semibold">
         {value || "Not uploaded"}
       </dd>
+    </div>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">SE</div>
+      </div>
     </div>
   );
 }
@@ -62,10 +78,11 @@ export default async function SettingsPage() {
   const canTestEmail = hasCompleteEmailSettings(emailSetting);
 
   return (
-    <div className="grid gap-3.5">
-      <header className="grid gap-4 border-b border-border pb-6 lg:grid-cols-[1fr_auto] lg:items-end">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] grid gap-4 overflow-hidden rounded-[16px] border p-4 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Settings
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -76,15 +93,18 @@ export default async function SettingsPage() {
             before adding the next business modules.
           </p>
         </div>
-        <span className="rounded-md bg-muted px-3 py-2 text-sm font-semibold capitalize text-muted-foreground">
-          Signed in as {user.role}
-        </span>
+        <div className="rounded-lg border border-white/70 bg-white/65 px-4 py-3 shadow-[0_12px_28px_rgba(36,42,94,0.08)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Access level
+          </p>
+          <p className="mt-1 text-lg font-semibold capitalize">{user.role}</p>
+        </div>
       </header>
 
-      <section className="grid gap-3.5 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-lg border border-border bg-white p-5">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="premium-card rounded-[16px] border p-5">
           <div className="mb-5">
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
               Business profile
             </p>
             <h3 className="mt-1 text-[13px] font-medium">
@@ -109,9 +129,9 @@ export default async function SettingsPage() {
         </div>
 
         <div className="grid gap-3.5 content-start">
-          <div className="rounded-lg border border-border bg-white p-5">
+          <div className="premium-card rounded-[16px] border p-5">
             <div className="mb-5">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00a884]">
                 Profile assets
               </p>
               <h3 className="mt-1 text-[13px] font-medium">
@@ -121,8 +141,8 @@ export default async function SettingsPage() {
             <AssetUploadForm />
           </div>
 
-          <div className="rounded-lg border border-border bg-white p-5">
-            <p className="text-sm font-medium text-muted-foreground">
+          <div className="premium-card rounded-[16px] border p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#f59e0b]">
               Current files
             </p>
             <dl className="mt-4 grid gap-3 text-sm">
@@ -137,9 +157,9 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-border bg-white p-5">
+      <section className="premium-card relative z-[1] rounded-[16px] border p-5">
         <div className="mb-5">
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
             Email delivery
           </p>
           <h3 className="mt-1 text-[13px] font-medium">
@@ -171,10 +191,10 @@ export default async function SettingsPage() {
       </section>
 
       {canEditTeam ? (
-        <section className="grid gap-3.5 xl:grid-cols-[0.8fr_1.2fr]">
-          <div className="rounded-lg border border-border bg-white p-5">
+        <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.8fr_1.2fr]">
+          <div className="premium-card rounded-[16px] border p-5">
             <div className="mb-5">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00a884]">
                 New user
               </p>
               <h3 className="mt-1 text-[13px] font-medium">
@@ -184,10 +204,10 @@ export default async function SettingsPage() {
             <TeamUserForm />
           </div>
 
-          <div className="rounded-lg border border-border bg-white">
+          <div className="premium-card overflow-hidden rounded-[16px] border">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
                   Team access
                 </p>
                 <h3 className="mt-1 text-[13px] font-medium">
@@ -200,14 +220,15 @@ export default async function SettingsPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] border-collapse text-left text-sm">
-                <thead className="text-[11px] text-[#94a3b8]">
+              <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+                <thead className="bg-white/45 text-[11px] uppercase tracking-[0.08em] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">User</th>
                     <th className="px-5 py-3 font-semibold">Role</th>
                     <th className="px-5 py-3 font-semibold">Status</th>
                     <th className="px-5 py-3 font-semibold">Created</th>
-                    <th className="px-5 py-3 font-semibold">Action</th>
+                    <th className="px-5 py-3 font-semibold">Save</th>
+                    <th className="px-5 py-3 font-semibold">Password reset</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -215,7 +236,7 @@ export default async function SettingsPage() {
                     const isOwner = teamUser.role === "owner";
 
                     return (
-                      <tr key={teamUser.id}>
+                      <tr className="transition hover:bg-white/45" key={teamUser.id}>
                         <td className="px-5 py-4 align-top">
                           <p className="font-semibold">{teamUser.name}</p>
                           <p className="mt-1 text-muted-foreground">
@@ -235,7 +256,7 @@ export default async function SettingsPage() {
                                 value={teamUser.id}
                               />
                               <select
-                                className="h-10 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+                                className="h-10 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
                                 defaultValue={teamUser.role}
                                 name="role"
                               >
@@ -252,7 +273,7 @@ export default async function SettingsPage() {
                             </span>
                           ) : (
                             <select
-                              className="h-10 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+                              className="h-10 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
                               defaultValue={teamUser.status}
                               form={teamUser.id}
                               name="status"
@@ -272,12 +293,44 @@ export default async function SettingsPage() {
                             </span>
                           ) : (
                             <button
-                              className="h-10 rounded-md bg-accent px-3 text-sm font-semibold text-white transition hover:bg-[#2d7bc9]"
+                              className="premium-button h-10 rounded-lg px-3 text-sm font-semibold text-white transition"
                               form={teamUser.id}
                               type="submit"
                             >
                               Save
                             </button>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          {isOwner ? (
+                            <span className="text-sm text-muted-foreground">
+                              Protected
+                            </span>
+                          ) : (
+                            <form
+                              action={resetTeamUserPassword}
+                              className="flex gap-2"
+                            >
+                              <input
+                                name="userId"
+                                type="hidden"
+                                value={teamUser.id}
+                              />
+                              <input
+                                className="h-10 w-40 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
+                                minLength={8}
+                                name="password"
+                                placeholder="New password"
+                                required
+                                type="password"
+                              />
+                              <button
+                                className="premium-soft-button h-10 rounded-lg border px-3 text-sm font-semibold transition hover:border-[#635bff]/30 hover:bg-white"
+                                type="submit"
+                              >
+                                Reset
+                              </button>
+                            </form>
                           )}
                         </td>
                       </tr>
@@ -289,8 +342,8 @@ export default async function SettingsPage() {
           </div>
         </section>
       ) : (
-        <section className="rounded-lg border border-border bg-white p-5">
-          <p className="text-sm font-medium text-muted-foreground">
+        <section className="premium-card relative z-[1] rounded-[16px] border p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#f59e0b]">
             Team management
           </p>
           <h3 className="mt-1 text-[13px] font-medium">Owner-only access</h3>

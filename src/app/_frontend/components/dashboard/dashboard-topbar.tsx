@@ -39,6 +39,10 @@ function pageTitle(pathname: string) {
     return { title: "Dashboard", sub: todayLabel() };
   }
 
+  if (/^\/dashboard\/invoices\/[^/]+$/.test(pathname)) {
+    return { title: "Invoice Detail", sub: todayLabel() };
+  }
+
   return (
     pageLabels.find((page) => pathname.startsWith(page.match)) ?? {
       title: "Workspace",
@@ -52,7 +56,7 @@ export function DashboardTopbar({ userName }: { userName: string }) {
   const page = pageTitle(pathname);
 
   return (
-    <header className="sticky top-0 z-10 hidden h-[54px] items-center justify-between border-b border-border bg-white px-[22px] print:hidden lg:flex">
+    <header className="premium-topbar sticky top-0 z-10 hidden h-[54px] items-center justify-between border-b px-[22px] print:hidden lg:flex">
       <div>
         <h2 className="text-[14.5px] font-medium">{page.title}</h2>
         <p className="mt-0.5 text-[11px] text-[#94a3b8]">{page.sub}</p>
@@ -63,22 +67,22 @@ export function DashboardTopbar({ userName }: { userName: string }) {
             Search
           </span>
           <input
-            className="h-[31px] w-full rounded-lg border border-border bg-[#f8f9fa] pl-[58px] pr-3 text-xs outline-none transition focus:border-accent focus:bg-white"
+            className="premium-soft-button h-[31px] w-full rounded-lg border pl-[58px] pr-3 text-xs outline-none transition focus:border-accent focus:bg-white"
             placeholder="..."
           />
         </div>
-        <span className="relative grid size-[30px] place-items-center rounded-lg border border-border bg-[#f8f9fa] text-xs text-muted-foreground">
+        <span className="premium-soft-button relative grid size-[30px] place-items-center rounded-lg border text-xs text-muted-foreground">
           N
           <span className="absolute right-1 top-1 size-[5px] rounded-full bg-danger ring-2 ring-white" />
         </span>
-        <span className="grid size-[30px] place-items-center rounded-lg border border-border bg-[#f8f9fa] text-xs text-muted-foreground">
+        <span className="premium-soft-button grid size-[30px] place-items-center rounded-lg border text-xs text-muted-foreground">
           R
         </span>
-        <span className="grid size-[30px] place-items-center rounded-full bg-[#e6f1fb] text-[11px] font-semibold text-[#185fa5]">
+        <span className="premium-avatar grid size-[30px] place-items-center rounded-full text-[11px] font-semibold text-white">
           {initials(userName)}
         </span>
         <Link
-          className="inline-flex h-[31px] items-center justify-center rounded-lg bg-accent px-3.5 text-[12.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
+          className="premium-button inline-flex h-[31px] items-center justify-center rounded-lg px-3.5 text-[12.5px] font-medium text-white transition hover:brightness-105"
           href="/dashboard/invoices"
         >
           + New invoice

@@ -62,7 +62,7 @@ function CheckoutButton({ disabled }: { disabled: boolean }) {
 
   return (
     <button
-      className="inline-flex h-[38px] w-full items-center justify-center rounded-lg bg-accent px-4 text-[12px] font-medium text-white transition hover:bg-[#2d7bc9] disabled:cursor-not-allowed disabled:opacity-60"
+      className="premium-button inline-flex h-[38px] w-full items-center justify-center rounded-lg px-4 text-[12px] font-medium text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={disabled || pending}
       type="submit"
     >
@@ -205,8 +205,11 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
   }
 
   return (
-    <form action={action} className="grid gap-3.5 xl:grid-cols-[1fr_420px]">
-      <section className="rounded-[14px] border border-border bg-white p-4">
+    <form
+      action={action}
+      className="relative z-[1] grid gap-3.5 xl:grid-cols-[1fr_420px]"
+    >
+      <section className="premium-card rounded-[16px] border p-4">
         <div className="flex flex-col gap-4 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
@@ -217,7 +220,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
             </h3>
           </div>
           <input
-            className="h-[34px] w-full rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent md:max-w-sm"
+            className="h-[34px] w-full rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent md:max-w-sm"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by item, SKU, category"
             value={query}
@@ -255,7 +258,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
 
               return (
                 <button
-                  className="grid min-h-36 gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3 text-left transition hover:border-accent hover:bg-[#e6f1fb]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="grid min-h-36 gap-3 rounded-[10px] border border-white/70 bg-white/65 p-3 text-left shadow-[0_14px_40px_rgba(15,23,42,0.06)] transition hover:border-[#635bff]/40 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isOutOfStock}
                   key={product.id}
                   onClick={() => addProduct(product)}
@@ -268,7 +271,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                         {product.sku || product.category || product.type}
                       </p>
                     </div>
-                    <span className="rounded-[5px] bg-white px-2 py-0.5 text-[9.5px] font-medium capitalize text-muted-foreground">
+                    <span className="rounded-[5px] bg-[#eef2ff] px-2 py-0.5 text-[9.5px] font-medium capitalize text-[#4f46e5]">
                       {product.type}
                     </span>
                   </div>
@@ -305,7 +308,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
       </section>
 
       <aside className="grid gap-4 self-start xl:sticky xl:top-20">
-        <section className="rounded-[14px] border border-border bg-white p-4">
+        <section className="premium-card rounded-[16px] border p-4">
           <div className="flex items-center justify-between gap-4 border-b border-border p-5">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -313,13 +316,13 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
               </p>
               <h3 className="mt-1 text-[13px] font-medium">Walk-in customer</h3>
             </div>
-            <span className="rounded-[5px] bg-[#e6f1fb] px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.12em] text-[#185fa5]">
+            <span className="rounded-[5px] bg-[#eef2ff] px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.12em] text-[#4f46e5]">
               POS
             </span>
           </div>
 
           <div className="grid gap-4 p-5">
-            <div className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+            <div className="grid gap-3 rounded-[10px] border border-white/70 bg-white/60 p-3">
               <div>
                 <p className="text-sm font-semibold">Customer details</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -331,7 +334,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                 <label className="grid gap-1 text-xs font-semibold text-muted-foreground">
                   Name
                   <input
-                    className="h-10 rounded-md border border-border bg-white px-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
+                    className="h-10 rounded-[8px] border border-white/70 bg-white/85 px-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
                     name="customerName"
                     placeholder="Walk-in customer"
                   />
@@ -339,7 +342,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                 <label className="grid gap-1 text-xs font-semibold text-muted-foreground">
                   Phone
                   <input
-                    className="h-10 rounded-md border border-border bg-white px-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
+                    className="h-10 rounded-[8px] border border-white/70 bg-white/85 px-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
                     name="customerPhone"
                     placeholder="Optional phone"
                   />
@@ -348,7 +351,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
             </div>
 
             {cart.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center">
+              <div className="rounded-lg border border-dashed border-white/70 bg-white/55 p-6 text-center">
                 <p className="font-semibold">Cart is empty</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Search or tap products to start a fast counter bill.
@@ -372,7 +375,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
 
                   return (
                     <div
-                      className="rounded-[10px] border border-border bg-[#f8f9fa] p-3"
+                      className="rounded-[10px] border border-white/70 bg-white/65 p-3"
                       key={line.product.id}
                     >
                       <input
@@ -402,7 +405,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                           </p>
                         </div>
                         <button
-                          className="rounded-[6px] border border-border bg-white px-2 py-1 text-[10.5px] font-medium text-muted-foreground transition hover:bg-[#e6f1fb]"
+                          className="premium-soft-button rounded-[6px] border px-2 py-1 text-[10.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
                           onClick={() => removeLine(line.product.id)}
                           type="button"
                         >
@@ -413,7 +416,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                         <label className="grid gap-1 text-xs font-semibold text-muted-foreground">
                           Qty
                           <input
-                            className="h-10 rounded-md border border-border bg-white px-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+                            className="h-10 rounded-[8px] border border-white/70 bg-white/85 px-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
                             min="1"
                             name="quantity"
                             onChange={(event) =>
@@ -427,7 +430,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
                         <label className="grid gap-1 text-xs font-semibold text-muted-foreground">
                           Discount
                           <input
-                            className="h-10 rounded-md border border-border bg-white px-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+                            className="h-10 rounded-[8px] border border-white/70 bg-white/85 px-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
                             min="0"
                             name="discount"
                             onChange={(event) =>
@@ -476,7 +479,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
           </div>
         </section>
 
-        <section className="rounded-[14px] border border-border bg-white p-4">
+        <section className="premium-card rounded-[16px] border p-4">
           <div className="grid gap-3 text-sm">
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Subtotal</span>
@@ -504,7 +507,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
             <label className="grid gap-1 text-sm font-semibold">
               Cash received
               <input
-                className="h-[38px] rounded-[7px] border border-border bg-white px-2.5 text-[14px] font-medium outline-none transition focus:border-accent"
+                className="h-[38px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[14px] font-medium outline-none transition focus:border-accent"
                 min="0"
                 name="cashReceived"
                 onChange={(event) => setCashReceived(event.target.value)}
@@ -515,13 +518,13 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
               />
             </label>
             <button
-              className="h-[34px] rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+              className="premium-soft-button h-[34px] rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
               onClick={() => setCashReceived(totals.grand.toFixed(2))}
               type="button"
             >
               Exact cash
             </button>
-            <div className="rounded-lg bg-muted p-4">
+            <div className="rounded-lg border border-white/70 bg-white/60 p-4">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm text-muted-foreground">Change due</span>
                 <span className="text-2xl font-semibold">
@@ -539,7 +542,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
           <label className="mt-5 grid gap-1 text-sm font-semibold">
             Notes
             <textarea
-              className="min-h-20 rounded-lg border border-border bg-[#f8f9fa] px-3 py-2 text-sm font-normal outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
+              className="min-h-20 rounded-lg border border-white/70 bg-white/65 px-3 py-2 text-sm font-normal outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
               name="notes"
               onChange={(event) => setNotes(event.target.value)}
               placeholder="Optional bill note"
@@ -550,7 +553,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
           <div className="mt-5 grid gap-2">
             <CheckoutButton disabled={checkoutDisabled} />
             <button
-              className="inline-flex h-[34px] w-full items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb] disabled:cursor-not-allowed disabled:opacity-50"
+              className="premium-soft-button inline-flex h-[34px] w-full items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
               disabled={cart.length === 0}
               onClick={() => {
                 setCart([]);

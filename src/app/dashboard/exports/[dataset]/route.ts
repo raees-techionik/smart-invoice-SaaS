@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireDataExporter } from "@/app/_backend/lib/auth/roles";
 import { buildCsvExport, isCsvExportDataset } from "@/app/_backend/lib/exports";
 
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ type CsvExportRouteProps = {
 };
 
 export async function GET(_request: Request, { params }: CsvExportRouteProps) {
-  const user = await requireUser();
+  const user = await requireDataExporter();
   const { dataset } = await params;
 
   if (!isCsvExportDataset(dataset)) {

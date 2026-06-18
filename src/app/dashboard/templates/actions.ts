@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { formValue } from "@/app/_backend/lib/auth/forms";
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireTemplateManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import {
   invoiceTemplateDensityOptions,
@@ -103,7 +103,7 @@ export async function createInvoiceTemplate(
   _state: InvoiceTemplateActionState,
   formData: FormData,
 ): Promise<InvoiceTemplateActionState> {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
   const name = formValue(formData, "name");
   const settings = templateSettingsFromForm(formData);
   const shouldSetDefault = booleanValue(formData, "isDefault");
@@ -154,7 +154,7 @@ export async function updateInvoiceTemplate(
   _state: InvoiceTemplateActionState,
   formData: FormData,
 ): Promise<InvoiceTemplateActionState> {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
   const templateId = formValue(formData, "templateId");
   const name = formValue(formData, "name");
   const settings = templateSettingsFromForm(formData);
@@ -215,7 +215,7 @@ export async function updateInvoiceTemplate(
 }
 
 export async function setDefaultInvoiceTemplate(formData: FormData) {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
   const templateId = formValue(formData, "templateId");
 
   if (!templateId) {
@@ -258,8 +258,8 @@ export async function setDefaultInvoiceTemplate(formData: FormData) {
   revalidatePath("/dashboard/invoices");
 }
 
-export async function deleteInvoiceTemplate(formData: FormData) {
-  const user = await requireUser();
+export async function duplicateInvoiceTemplate(formData: FormData) {
+  const user = await requireTemplateManager();
   const templateId = formValue(formData, "templateId");
 
   if (!templateId) {
@@ -274,6 +274,53 @@ export async function deleteInvoiceTemplate(formData: FormData) {
   });
 
   if (!template) {
+    return;
+  }
+
+  const duplicate = await prisma.invoiceTemplate.create({
+    data: {
+      businessId: user.businessId,
+      isDefault: false,
+      name: `Copy of ${template.name}`,
+      settings: template.settings,
+    },
+  });
+
+  revalidatePath("/dashboard/templates");
+  revalidatePath("/dashboard/invoices");
+
+  redirect(templatePath(duplicate.id));
+}
+
+export async function deleteInvoiceTemplate(formData: FormData) {
+  const user = await requireTemplateManager();
+  const templateId = formValue(formData, "templateId");
+
+  if (!templateId) {
+    return;
+  }
+
+  const template = await prisma.invoiceTemplate.findFirst({
+    include: {
+      _count: {
+        select: {
+          invoices: true,
+        },
+      },
+    },
+    where: {
+      businessId: user.businessId,
+      id: templateId,
+    },
+  });
+
+  if (!template) {
+    return;
+  }
+
+  if (template._count.invoices > 0) {
+    revalidatePath("/dashboard/templates");
+    revalidatePath(templatePath(template.id));
     return;
   }
 

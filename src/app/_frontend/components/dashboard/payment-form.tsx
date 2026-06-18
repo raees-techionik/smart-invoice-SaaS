@@ -52,7 +52,7 @@ function SubmitPaymentButton({ disabled }: { disabled: boolean }) {
 
   return (
     <button
-      className="inline-flex h-[34px] items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9] disabled:cursor-not-allowed disabled:opacity-60"
+      className="premium-button inline-flex h-[34px] items-center justify-center rounded-lg px-3 text-[11.5px] font-medium text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={disabled || pending}
       type="submit"
     >
@@ -84,7 +84,7 @@ export function PaymentForm({
         <label className="grid gap-2 text-sm font-medium">
           Invoice
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             disabled={!hasInvoiceTarget}
             name="invoiceId"
             required
@@ -104,7 +104,7 @@ export function PaymentForm({
         <label className="grid gap-2 text-sm font-medium">
           Amount
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             max={maxAmount}
             min="0.01"
             name="amount"
@@ -117,7 +117,7 @@ export function PaymentForm({
         <label className="grid gap-2 text-sm font-medium">
           Payment date
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue={todayDate()}
             name="paymentDate"
             type="date"
@@ -126,7 +126,7 @@ export function PaymentForm({
         <label className="grid gap-2 text-sm font-medium">
           Method
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue="cash"
             name="paymentMethod"
           >
@@ -140,7 +140,7 @@ export function PaymentForm({
         <label className="grid gap-2 text-sm font-medium md:col-span-2">
           Notes
           <textarea
-            className="min-h-24 rounded-md border border-border bg-white px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+            className="min-h-24 rounded-[8px] border border-white/70 bg-white/85 px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
             name="notes"
             placeholder="Receipt reference, transfer id, or internal notes."
           />

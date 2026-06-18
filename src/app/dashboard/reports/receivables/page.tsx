@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireReportViewer } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 
 type ReceivablesReportPageProps = {
@@ -145,7 +145,7 @@ function BucketBadge({ daysOverdue }: { daysOverdue: number }) {
 export default async function ReceivablesReportPage({
   searchParams,
 }: ReceivablesReportPageProps) {
-  const user = await requireUser();
+  const user = await requireReportViewer();
   const params = await searchParams;
   const asOfDate = parseAsOfDate(params.asOf);
   const money = currencyFormatter(user.business.currency);

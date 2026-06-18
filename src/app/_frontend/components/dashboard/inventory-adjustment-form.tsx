@@ -62,7 +62,7 @@ export function InventoryAdjustmentForm({
       <label className="grid gap-2 text-sm font-medium text-foreground">
         Product
         <select
-          className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+          className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
           defaultValue={selectedProductId ?? products[0]?.id ?? ""}
           name="productId"
           required
@@ -84,7 +84,7 @@ export function InventoryAdjustmentForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Movement type
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             name="type"
           >
             <option value="stock_in">Stock in</option>
@@ -96,7 +96,7 @@ export function InventoryAdjustmentForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Quantity / target
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
             min="0"
             name="quantity"
             placeholder="0"
@@ -109,7 +109,7 @@ export function InventoryAdjustmentForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Unit cost
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
             min="0"
             name="unitCost"
             placeholder="0.00"
@@ -123,7 +123,7 @@ export function InventoryAdjustmentForm({
       <label className="grid gap-2 text-sm font-medium text-foreground">
         Notes
         <textarea
-          className="min-h-20 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+          className="min-h-20 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
           name="notes"
           placeholder="Supplier receipt, damaged stock, physical count, or reason for adjustment."
         />

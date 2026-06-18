@@ -39,21 +39,42 @@ function MetricCard({
   value: string;
 }) {
   const toneClasses = {
-    amber: "bg-[#faeeda] text-[#854f0b]",
-    blue: "bg-[#e6f1fb] text-[#185fa5]",
-    green: "bg-[#eaf3de] text-[#3b6d11]",
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
   };
 
   return (
-    <div className="rounded-[14px] border border-border bg-white p-[15px]">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
       <div
-        className={`mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
         {label.slice(0, 2).toUpperCase()}
       </div>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-2 text-[10.5px] text-[#94a3b8]">{helper}</p>
+    </div>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">CU</div>
+      </div>
     </div>
   );
 }
@@ -138,10 +159,11 @@ export default async function CustomersPage({
   );
 
   return (
-    <div className="grid gap-3.5">
-      <header className="grid gap-4 rounded-[14px] border border-border bg-white p-4 lg:grid-cols-[1fr_auto] lg:items-end">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] grid gap-4 overflow-hidden rounded-[16px] border p-4 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Customers
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -154,13 +176,13 @@ export default async function CustomersPage({
         </div>
         <form action="/dashboard/customers" className="flex gap-2">
           <input
-            className="h-[34px] min-w-0 rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+            className="h-[34px] min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
             defaultValue={search}
             name="q"
             placeholder="Search customers"
           />
           <button
-            className="h-[34px] rounded-lg bg-accent px-4 text-[12px] font-medium text-white transition hover:bg-[#2d7bc9]"
+            className="premium-button h-[34px] rounded-lg px-4 text-[12px] font-medium text-white transition hover:brightness-105"
             type="submit"
           >
             Search
@@ -168,7 +190,7 @@ export default async function CustomersPage({
         </form>
       </header>
 
-      <section className="grid gap-[11px] md:grid-cols-3">
+      <section className="relative z-[1] grid gap-[11px] md:grid-cols-3">
         <MetricCard
           helper="Profiles available for invoices and payments."
           label="Total customers"
@@ -189,8 +211,8 @@ export default async function CustomersPage({
         />
       </section>
 
-      <section className="grid gap-[11px] xl:grid-cols-[0.88fr_1.12fr]">
-        <div className="rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-[11px] xl:grid-cols-[0.88fr_1.12fr]">
+        <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-[13px] flex items-center justify-between gap-4">
             <h3 className="text-[13px] font-medium">New customer</h3>
             <span className="text-[11px] text-[#94a3b8]">Profile setup</span>
@@ -198,7 +220,7 @@ export default async function CustomersPage({
           <CustomerForm />
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="mb-[13px] flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h3 className="text-[13px] font-medium">
                 {search ? `Matches for "${search}"` : "Latest customers"}
@@ -238,7 +260,7 @@ export default async function CustomersPage({
                 <tbody>
                   {customers.map((customer) => (
                     <tr
-                      className="border-b border-border transition last:border-0 hover:bg-black/[0.015]"
+                      className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                       key={customer.id}
                     >
                       <td className="py-2.5 pr-4 align-top">

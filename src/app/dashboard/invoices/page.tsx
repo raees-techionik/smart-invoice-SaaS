@@ -73,15 +73,23 @@ function StatCard({
   value: string | number;
 }) {
   const toneClasses = {
-    amber: "bg-[#faeeda] text-[#854f0b]",
-    blue: "bg-[#e6f1fb] text-[#185fa5]",
-    green: "bg-[#eaf3de] text-[#3b6d11]",
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
   };
 
   return (
-    <article className="rounded-[14px] border border-border bg-white p-[15px]">
+    <article className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
       <div
-        className={`mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
         {label.slice(0, 2).toUpperCase()}
       </div>
@@ -89,6 +97,19 @@ function StatCard({
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-2 text-[10.5px] text-[#94a3b8]">{detail}</p>
     </article>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">INV</div>
+      </div>
+    </div>
   );
 }
 
@@ -102,7 +123,7 @@ function Card({
   title: string;
 }) {
   return (
-    <section className="rounded-[14px] border border-border bg-white p-4">
+    <section className="premium-card rounded-[16px] border p-4">
       <div className="mb-[13px] flex items-center justify-between gap-4">
         <h3 className="text-[13px] font-medium">{title}</h3>
         {subtitle ? (
@@ -202,8 +223,9 @@ export default async function InvoicesPage() {
   const revenue = Number(revenueAggregate._sum.grandTotal ?? 0);
 
   return (
-    <div className="flex flex-col gap-3.5">
-      <section className="grid grid-cols-1 gap-[11px] md:grid-cols-2 xl:grid-cols-4">
+    <div className="relative flex flex-col gap-3.5">
+      <PremiumVisual />
+      <section className="relative z-[1] grid grid-cols-1 gap-[11px] md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           detail={`${finalizedInvoices} finalized records`}
           label="Total invoices"
@@ -230,7 +252,7 @@ export default async function InvoicesPage() {
         />
       </section>
 
-      <section className="grid gap-[11px] 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
+      <section className="relative z-[1] grid gap-[11px] 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
         <Card subtitle="Draft workspace" title="New invoice">
           <InvoiceForm
             customers={customers}
@@ -265,13 +287,13 @@ export default async function InvoicesPage() {
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Link
-                className="flex items-center justify-center rounded-lg border border-border bg-[#f8f9fa] px-2 py-2 text-[11.5px] transition hover:bg-[#e6f1fb]"
+                className="premium-soft-button flex items-center justify-center rounded-lg border px-2 py-2 text-[11.5px] transition hover:border-[#635bff]/30 hover:bg-white"
                 href="/dashboard/customers"
               >
                 Add customer
               </Link>
               <Link
-                className="flex items-center justify-center rounded-lg border border-border bg-[#f8f9fa] px-2 py-2 text-[11.5px] transition hover:bg-[#e6f1fb]"
+                className="premium-soft-button flex items-center justify-center rounded-lg border px-2 py-2 text-[11.5px] transition hover:border-[#635bff]/30 hover:bg-white"
                 href="/dashboard/products"
               >
                 Add product
@@ -280,7 +302,7 @@ export default async function InvoicesPage() {
           </Card>
 
           <Card subtitle="Preview" title="Invoice summary">
-            <div className="rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+            <div className="rounded-[12px] border border-white/70 bg-white/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
               <div className="border-b border-border pb-3">
                 <p className="text-[10.5px] uppercase tracking-[0.08em] text-[#185fa5]">
                   {user.business.name}
@@ -314,6 +336,7 @@ export default async function InvoicesPage() {
         </div>
       </section>
 
+      <div className="relative z-[1]">
       <Card subtitle={`Showing ${invoices.length} latest records`} title="Latest invoices">
         {invoices.length === 0 ? (
           <div className="grid min-h-40 place-items-center text-center">
@@ -345,7 +368,7 @@ export default async function InvoicesPage() {
 
                   return (
                     <tr
-                      className="border-b border-border last:border-0 hover:bg-black/[0.015]"
+                      className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                       key={invoice.id}
                     >
                       <td className="truncate py-2 pr-3">
@@ -393,6 +416,7 @@ export default async function InvoicesPage() {
           </div>
         )}
       </Card>
+      </div>
     </div>
   );
 }

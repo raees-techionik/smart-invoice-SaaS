@@ -146,8 +146,8 @@ function ActionLink({
     <Link
       className={`inline-flex h-[34px] items-center justify-center rounded-lg px-3 text-[11.5px] font-medium transition ${
         primary
-          ? "bg-accent text-white hover:bg-[#2d7bc9]"
-          : "border border-border bg-white hover:bg-[#e6f1fb]"
+          ? "premium-button text-white hover:brightness-105"
+          : "premium-soft-button border hover:border-[#635bff]/30 hover:bg-white"
       }`}
       href={href}
       rel={target ? "noreferrer" : undefined}
@@ -171,7 +171,7 @@ function Card({
 }) {
   return (
     <section
-      className={`rounded-[14px] border border-border bg-white p-4 print:hidden ${className}`}
+      className={`premium-card rounded-[16px] border p-4 print:hidden ${className}`}
     >
       <div className="mb-[13px] flex items-center justify-between gap-4">
         <h3 className="text-[13px] font-medium">{title}</h3>
@@ -215,16 +215,25 @@ function StatCard({
   value: string | number;
 }) {
   const toneClasses = {
-    amber: "bg-[#faeeda] text-[#854f0b]",
-    blue: "bg-[#e6f1fb] text-[#185fa5]",
-    green: "bg-[#eaf3de] text-[#3b6d11]",
-    red: "bg-[#fcebeb] text-[#a32d2d]",
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+    red: "bg-[#fff1f2] text-[#be123c]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
+    red: "from-[#f43f5e] to-[#fda4af]",
   };
 
   return (
-    <article className="rounded-[14px] border border-border bg-white p-[15px] print:hidden">
+    <article className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px] print:hidden">
       <div
-        className={`mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
         {label.slice(0, 2).toUpperCase()}
       </div>
@@ -232,6 +241,19 @@ function StatCard({
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-2 text-[10.5px] text-[#94a3b8]">{detail}</p>
     </article>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">INV</div>
+      </div>
+    </div>
   );
 }
 
@@ -520,12 +542,13 @@ export default async function InvoiceDetailPage({
     );
 
   return (
-    <div className="grid gap-3.5">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
       {print === "1" && !isDraft ? <AutoPrintTrigger /> : null}
-      <header className="order-1 rounded-[14px] border border-border bg-white p-4 print:hidden">
+      <header className="premium-card relative z-[1] order-1 overflow-hidden rounded-[16px] border p-4 print:hidden">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Invoice
           </p>
             <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -559,7 +582,7 @@ export default async function InvoiceDetailPage({
         </div>
       </header>
 
-      <section className="order-2 grid gap-[11px] print:hidden md:grid-cols-2 xl:grid-cols-5">
+      <section className="relative z-[1] order-2 grid gap-[11px] print:hidden md:grid-cols-2 xl:grid-cols-5">
         <StatCard
           detail="Current invoice stage"
           label="Status"
@@ -626,7 +649,7 @@ export default async function InvoiceDetailPage({
                 maxAmount={decimalInputValue(invoice.balanceAmount)}
               />
             ) : (
-              <p className="rounded-[7px] border border-border bg-[#f8f9fa] px-3 py-2 text-[11.5px] text-muted-foreground">
+              <p className="premium-soft-button rounded-[9px] border px-3 py-2 text-[11.5px] text-muted-foreground">
                 This invoice has no open balance.
               </p>
             )}
@@ -658,7 +681,7 @@ export default async function InvoiceDetailPage({
                   <tbody>
                     {invoice.payments.map((payment) => (
                       <tr
-                        className="border-b border-border last:border-0 hover:bg-black/[0.015]"
+                        className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={payment.id}
                       >
                         <td className="px-4 py-2.5 align-top">
@@ -725,7 +748,7 @@ export default async function InvoiceDetailPage({
                   <tbody>
                     {invoice.refunds.map((refund) => (
                       <tr
-                        className="border-b border-border last:border-0 hover:bg-black/[0.015]"
+                        className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={refund.id}
                       >
                         <td className="px-4 py-2.5 align-top">
@@ -827,7 +850,7 @@ export default async function InvoiceDetailPage({
               <tbody>
                 {invoice.emailSends.map((emailSend) => (
                   <tr
-                    className="border-b border-border last:border-0 hover:bg-black/[0.015]"
+                    className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                     key={emailSend.id}
                   >
                     <td className="px-4 py-2.5 align-top">
@@ -905,7 +928,7 @@ export default async function InvoiceDetailPage({
               <tbody>
                 {invoice.inventoryMoves.map((movement) => (
                   <tr
-                    className="border-b border-border transition last:border-0 hover:bg-black/[0.015]"
+                    className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                     key={movement.id}
                   >
                     <td className="px-4 py-2.5 align-top">
@@ -1061,7 +1084,7 @@ export default async function InvoiceDetailPage({
       ) : null}
 
       <section
-        className={`order-4 rounded-[14px] border border-border bg-white p-4 ${
+        className={`premium-card relative z-[1] order-4 rounded-[16px] border p-4 ${
           isPosInvoice ? "print:hidden" : "print:border-0 print:p-0"
         }`}
       >
@@ -1072,9 +1095,9 @@ export default async function InvoiceDetailPage({
           />
         ) : null}
         <div
-          className={`flex flex-col gap-4 border-b border-border pb-4 ${
+          className={`flex flex-col gap-4 border-b border-border pb-4 print:break-inside-avoid ${
             invoiceTemplateSettings.headerStyle === "boxed"
-              ? "rounded-[10px] border border-border bg-[#f8f9fa] p-4"
+              ? "rounded-[12px] border border-white/70 bg-white/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
               : "sm:flex-row sm:items-start sm:justify-between"
           }`}
         >
@@ -1137,7 +1160,7 @@ export default async function InvoiceDetailPage({
         </div>
 
         <div
-          className={`grid gap-4 border-b border-border py-4 ${
+          className={`grid gap-4 border-b border-border py-4 print:break-inside-avoid ${
             invoiceTemplateSettings.layout === "modern"
               ? "sm:grid-cols-2"
               : "sm:grid-cols-[1.2fr_0.8fr]"
@@ -1161,7 +1184,7 @@ export default async function InvoiceDetailPage({
             ) : null}
           </div>
           {invoiceTemplateSettings.showBalanceBox ? (
-            <div className="rounded-[10px] border border-border bg-[#f8f9fa] p-4">
+            <div className="rounded-[12px] border border-white/70 bg-white/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
               <p className="text-[11px] font-medium text-muted-foreground">
                 Amount due
               </p>
@@ -1175,8 +1198,8 @@ export default async function InvoiceDetailPage({
           ) : null}
         </div>
 
-        <div className="overflow-x-auto py-4">
-          <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+        <div className="overflow-x-auto py-4 print:overflow-visible">
+          <table className="w-full min-w-[760px] border-collapse text-left text-xs print:min-w-0">
             <thead>
               <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                 <th className="px-3 pb-2 font-normal">Item</th>
@@ -1192,7 +1215,7 @@ export default async function InvoiceDetailPage({
             <tbody>
               {invoice.items.map((item) => (
                 <tr
-                  className="border-b border-border last:border-0"
+                  className="border-b border-border transition print:break-inside-avoid last:border-0 hover:bg-[#635bff]/[0.04]"
                   key={item.id}
                 >
                   <td className="px-3 py-2.5 align-top">
@@ -1224,7 +1247,7 @@ export default async function InvoiceDetailPage({
           </table>
         </div>
 
-        <div className="grid gap-5 border-t border-border pt-4 sm:grid-cols-[1fr_300px]">
+        <div className="grid gap-5 border-t border-border pt-4 print:break-inside-avoid print:grid-cols-[1fr_300px] sm:grid-cols-[1fr_300px]">
           <div className="grid gap-3 text-xs text-muted-foreground">
             {invoiceTemplateSettings.paymentInstructions ? (
               <div>
@@ -1266,7 +1289,7 @@ export default async function InvoiceDetailPage({
               </div>
             ) : null}
           </div>
-          <dl className="grid gap-2 rounded-[10px] border border-border bg-[#f8f9fa] p-3 text-xs">
+          <dl className="grid gap-2 rounded-[12px] border border-white/70 bg-white/60 p-3 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">Subtotal</dt>
               <dd className="font-mono font-medium">

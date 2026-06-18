@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { BackupRestoreForm } from "@/app/_frontend/components/dashboard/backup-restore-form";
+import { requireDataExporter } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { getExportSummaries } from "@/app/_backend/lib/exports";
 
@@ -55,7 +56,7 @@ function filterSummary(filtersJson: string | null) {
 }
 
 export default async function ExportsPage() {
-  const user = await requireUser();
+  const user = await requireDataExporter();
   const [summaries, recentExportLogs] = await Promise.all([
     getExportSummaries(user.businessId),
     prisma.exportAuditLog.findMany({
@@ -211,6 +212,24 @@ export default async function ExportsPage() {
               path; the binary file archive can be added as a later export pass.
             </p>
           </div>
+
+          {user.role === "owner" ? (
+            <div className="rounded-[14px] border border-border bg-white p-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Restore backup
+              </p>
+              <h3 className="mt-1 text-[13px] font-medium">
+                Merge JSON backup
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Upload a full backup JSON file to preview and merge records into
+                this business. Current records are not deleted.
+              </p>
+              <div className="mt-5">
+                <BackupRestoreForm />
+              </div>
+            </div>
+          ) : null}
 
           <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
             <div className="border-b border-border p-5">

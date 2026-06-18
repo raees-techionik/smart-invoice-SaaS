@@ -47,7 +47,7 @@ function Field({
     <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
       {label}
       <input
-        className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+        className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
         defaultValue={defaultValue}
         min={type === "number" ? "0" : undefined}
         name={name}
@@ -75,7 +75,7 @@ function TextArea({
     <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
       {label}
       <textarea
-        className="min-h-16 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+        className="min-h-16 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
         defaultValue={defaultValue}
         name={name}
         placeholder={placeholder}
@@ -165,7 +165,7 @@ export function ProductForm({
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Type
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             defaultValue={defaults?.type ?? "product"}
             name="type"
           >
@@ -176,7 +176,7 @@ export function ProductForm({
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Status
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             defaultValue={defaults?.status ?? "active"}
             name="status"
           >

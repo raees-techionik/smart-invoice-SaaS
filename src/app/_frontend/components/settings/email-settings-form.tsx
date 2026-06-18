@@ -62,7 +62,7 @@ function Field({
     <label className="grid gap-2 text-sm font-medium">
       {label}
       <input
-        className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+        className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(36,42,94,0.04)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
         defaultValue={defaultValue}
         name={name}
         placeholder={placeholder}
@@ -129,7 +129,7 @@ export function EmailSettingsForm({ defaults }: EmailSettingsFormProps) {
         <label className="grid gap-2 text-sm font-medium md:col-span-2">
           SMTP password
           <input
-            className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+            className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(36,42,94,0.04)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
             name="smtpPassword"
             placeholder={
               defaults.hasPassword
@@ -140,7 +140,7 @@ export function EmailSettingsForm({ defaults }: EmailSettingsFormProps) {
           />
         </label>
       </div>
-      <label className="flex items-start gap-3 rounded-md border border-border bg-muted px-3 py-3 text-sm">
+      <label className="flex items-start gap-3 rounded-lg border border-white/75 bg-white/55 px-3 py-3 text-sm shadow-[0_10px_24px_rgba(36,42,94,0.05)]">
         <input
           className="mt-1 h-4 w-4 rounded border-border"
           defaultChecked={defaults.smtpSecure}

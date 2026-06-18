@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireReportViewer } from "@/app/_backend/lib/auth/roles";
 import {
   buildReceivablesReportXlsx,
   recordReportExportAudit,
@@ -9,7 +9,7 @@ import {
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const user = await requireUser();
+  const user = await requireReportViewer();
   const searchParams = new URL(request.url).searchParams;
   const filters = {
     asOf: searchParams.get("asOf"),

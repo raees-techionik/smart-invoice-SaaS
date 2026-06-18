@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireReportViewer } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 
 type ReportsPageProps = {
@@ -72,19 +72,39 @@ function MetricCard({
   tone?: "good" | "neutral" | "warn";
   value: string;
 }) {
-  const toneClass =
+  const toneClasses = {
+    good: "bg-[#ecfdf5] text-[#047857]",
+    neutral: "bg-[#eef2ff] text-[#4f46e5]",
+    warn: "bg-[#fff7ed] text-[#b45309]",
+  };
+  const toneLineClasses = {
+    good: "from-[#00a884] to-[#6ee7b7]",
+    neutral: "from-[#635bff] to-[#22d3ee]",
+    warn: "from-[#f59e0b] to-[#f97316]",
+  };
+  const valueToneClass =
     tone === "good"
-      ? "text-accent"
+      ? "text-[#047857]"
       : tone === "warn"
-        ? "text-warning"
+        ? "text-[#b45309]"
         : "text-foreground";
 
   return (
-    <div className="rounded-[14px] border border-border bg-white p-[15px]">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
+      <div
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
+      >
+        {label.slice(0, 2).toUpperCase()}
+      </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
-      <p className={`font-mono text-[21px] font-medium leading-none ${toneClass}`}>
+      <p
+        className={`font-mono text-[21px] font-medium leading-none ${valueToneClass}`}
+      >
         {value}
       </p>
       <p className="mt-2 text-sm text-muted-foreground">{helper}</p>
@@ -92,8 +112,44 @@ function MetricCard({
   );
 }
 
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">RP</div>
+      </div>
+    </div>
+  );
+}
+
+function ReportLink({
+  children,
+  href,
+  primary = false,
+}: {
+  children: React.ReactNode;
+  href: string;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      className={`inline-flex min-h-[34px] items-center justify-center rounded-lg border px-3 py-1.5 text-center text-[11.5px] font-medium leading-tight transition ${
+        primary
+          ? "premium-button border-transparent text-white hover:brightness-105"
+          : "premium-soft-button hover:border-[#635bff]/30 hover:bg-white"
+      }`}
+      href={href}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
-  const user = await requireUser();
+  const user = await requireReportViewer();
   const money = currencyFormatter(user.business.currency);
   const params = await searchParams;
   const defaults = defaultDateRange();
@@ -223,10 +279,11 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   );
 
   return (
-    <div className="grid gap-3.5">
-      <header className="flex flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] flex flex-col gap-4 overflow-hidden rounded-[16px] border p-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Reports
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -242,63 +299,73 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto_auto]"
         >
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue={fromInput}
             name="from"
             type="date"
           />
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue={toInput}
             name="to"
             type="date"
           />
           <button
-            className="inline-flex h-[34px] items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
+            className="premium-button inline-flex h-[34px] items-center justify-center rounded-lg px-3 text-[11.5px] font-medium text-white transition hover:brightness-105"
             type="submit"
           >
             Apply
           </button>
-          <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
-            href={xlsxHref}
-          >
-            Download XLSX
-          </Link>
-          <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
-            href="/dashboard/reports"
-          >
-            Reset
-          </Link>
+          <ReportLink href={xlsxHref}>Download XLSX</ReportLink>
+          <ReportLink href="/dashboard/reports">Reset</ReportLink>
         </form>
       </header>
 
-      <section className="flex flex-col gap-3 rounded-[14px] border border-border bg-white p-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="premium-card relative z-[1] flex flex-col gap-3 rounded-[16px] border p-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <p className="text-sm font-semibold">Need deeper visibility?</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Open receivables for unpaid balances or refunds for return impact
-            by method, product, and customer.
+            Open sales, customer, product, stock, tax, payment, expense trends,
+            expense categories, vendor, receivables, or refund reports for more
+            focused business analysis.
           </p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
-            href="/dashboard/reports/receivables"
-          >
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <ReportLink href="/dashboard/reports/sales" primary>
+            Sales trend
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/customers">
+            Customer sales
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/products">
+            Product profitability
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/stock">
+            Stock valuation
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/tax">Tax summary</ReportLink>
+          <ReportLink href="/dashboard/reports/payments">
+            Payment collection
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/expense-trends">
+            Expense trends
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/expenses">
+            Expense categories
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/vendors">
+            Vendor expenses
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/receivables">
             Receivables aging
-          </Link>
-          <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
-            href="/dashboard/reports/refunds"
-          >
+          </ReportLink>
+          <ReportLink href="/dashboard/reports/refunds">
             Refund summary
-          </Link>
+          </ReportLink>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <MetricCard
           helper={`${invoiceCount} finalized invoices`}
           label="Gross revenue"
@@ -336,8 +403,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         />
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -374,9 +441,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                         {money.format(amount)} / {percent(amount, expenses)}%
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-muted">
+                    <div className="h-2 overflow-hidden rounded-full bg-white/70">
                       <div
-                        className="h-full rounded-full bg-accent"
+                        className="h-full rounded-full bg-gradient-to-r from-[#635bff] to-[#22d3ee]"
                         style={{
                           width: `${percent(amount, maxCategoryAmount)}%`,
                         }}
@@ -389,7 +456,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           )}
         </div>
 
-        <div className="rounded-[14px] border border-border bg-white p-4">
+        <div className="premium-card rounded-[16px] border p-4">
           <p className="text-sm font-medium text-muted-foreground">
             Report formula
           </p>
@@ -422,7 +489,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               <dd className="font-semibold">{money.format(profit)}</dd>
             </div>
           </dl>
-          <p className="mt-5 rounded-lg border border-border bg-muted px-4 py-3 text-sm leading-6 text-muted-foreground">
+          <p className="mt-5 rounded-lg border border-white/70 bg-white/60 px-4 py-3 text-sm leading-6 text-muted-foreground">
             Archived expenses are excluded. Draft invoices are excluded. Refunds
             are subtracted from revenue by refund date. This is a practical
             operating P/L, not a tax filing report yet.
@@ -430,8 +497,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-2">
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-2">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="flex items-center justify-between border-b border-border p-5">
             <h3 className="text-[13px] font-medium">Revenue detail</h3>
             <Link
@@ -449,7 +516,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[520px] border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Invoice</th>
@@ -463,7 +530,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                 <tbody className="divide-y divide-border">
                   {recentInvoices.map((invoice) => (
                     <tr
-                      className="transition hover:bg-[#e6f1fb]/40"
+                      className="transition hover:bg-[#635bff]/[0.04]"
                       key={invoice.id}
                     >
                       <td className="px-5 py-4">
@@ -491,7 +558,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="flex items-center justify-between border-b border-border p-5">
             <h3 className="text-[13px] font-medium">Expense detail</h3>
             <Link
@@ -509,7 +576,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[520px] border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Category</th>
@@ -523,7 +590,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                 <tbody className="divide-y divide-border">
                   {recentExpenses.map((expense) => (
                     <tr
-                      className="transition hover:bg-[#e6f1fb]/40"
+                      className="transition hover:bg-[#635bff]/[0.04]"
                       key={expense.id}
                     >
                       <td className="px-5 py-4">

@@ -61,7 +61,7 @@ function Field({
     <label className="grid gap-2 text-sm font-medium text-foreground">
       {label}
       <input
-        className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+        className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
         defaultValue={defaultValue}
         min={type === "number" ? "0" : undefined}
         name={name}
@@ -123,7 +123,7 @@ export function ExpenseForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Category
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue={defaults?.category ?? "Other"}
             name="category"
             required
@@ -153,7 +153,7 @@ export function ExpenseForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Payment method
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue={defaults?.paymentMethod ?? "cash"}
             name="paymentMethod"
           >
@@ -174,7 +174,7 @@ export function ExpenseForm({
       <label className="grid gap-2 text-sm font-medium text-foreground">
         Notes
         <textarea
-          className="min-h-20 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+          className="min-h-20 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
           defaultValue={defaults?.notes}
           name="notes"
           placeholder="Optional context for reports or reconciliation."
@@ -184,7 +184,7 @@ export function ExpenseForm({
         Receipt attachment
         <input
           accept="application/pdf,image/jpeg,image/png,image/webp"
-          className="rounded-[10px] border border-dashed border-border bg-[#f8f9fa] px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-accent/60"
+          className="rounded-[10px] border border-dashed border-white/70 bg-white/65 px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#635bff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#635bff]/60"
           name="receipt"
           type="file"
         />

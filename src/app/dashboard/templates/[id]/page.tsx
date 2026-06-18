@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 
 import {
   deleteInvoiceTemplate,
+  duplicateInvoiceTemplate,
   setDefaultInvoiceTemplate,
 } from "@/app/dashboard/templates/actions";
 import { InvoiceTemplateForm } from "@/app/_frontend/components/dashboard/invoice-template-form";
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireTemplateManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
 
@@ -42,7 +43,7 @@ function DetailRow({
 export default async function InvoiceTemplateDetailPage({
   params,
 }: InvoiceTemplateDetailPageProps) {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
   const { id } = await params;
 
   const template = await prisma.invoiceTemplate.findFirst({
@@ -94,6 +95,15 @@ export default async function InvoiceTemplateDetailPage({
           >
             Preview PDF
           </Link>
+          <form action={duplicateInvoiceTemplate}>
+            <input name="templateId" type="hidden" value={template.id} />
+            <button
+              className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+              type="submit"
+            >
+              Duplicate
+            </button>
+          </form>
           {!template.isDefault ? (
             <form action={setDefaultInvoiceTemplate}>
               <input name="templateId" type="hidden" value={template.id} />
@@ -105,15 +115,21 @@ export default async function InvoiceTemplateDetailPage({
               </button>
             </form>
           ) : null}
-          <form action={deleteInvoiceTemplate}>
-            <input name="templateId" type="hidden" value={template.id} />
-            <button
-              className="inline-flex h-[34px] items-center justify-center rounded-lg border border-[#e24b4a]/30 bg-white px-3 text-[11.5px] font-medium text-[#a32d2d] transition hover:bg-[#fcebeb]"
-              type="submit"
-            >
-              Delete template
-            </button>
-          </form>
+          {template._count.invoices > 0 ? (
+            <span className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-[#f8f9fa] px-3 text-[11.5px] font-medium text-muted-foreground">
+              In use by invoices
+            </span>
+          ) : (
+            <form action={deleteInvoiceTemplate}>
+              <input name="templateId" type="hidden" value={template.id} />
+              <button
+                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-[#e24b4a]/30 bg-white px-3 text-[11.5px] font-medium text-[#a32d2d] transition hover:bg-[#fcebeb]"
+                type="submit"
+              >
+                Delete template
+              </button>
+            </form>
+          )}
         </div>
       </header>
 

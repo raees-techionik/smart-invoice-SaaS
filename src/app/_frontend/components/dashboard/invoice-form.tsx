@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -35,12 +36,17 @@ type TemplateOption = {
     accentColor: string;
     defaultNotes: string;
     defaultTerms: string;
+    density: string;
     footerText: string;
+    headerStyle: string;
     layout: string;
+    logoPlacement: string;
     paymentInstructions: string;
     showLogo: boolean;
     showSignature: boolean;
     showStamp: boolean;
+    signaturePlacement: string;
+    stampPlacement: string;
   };
 };
 
@@ -142,7 +148,7 @@ function SaveDraftButton({
 
   return (
     <button
-      className="mt-3 inline-flex h-[34px] w-full items-center justify-center rounded-lg bg-accent px-4 text-[12.5px] font-medium text-white transition hover:bg-[#2d7bc9] disabled:cursor-not-allowed disabled:opacity-60"
+      className="premium-button mt-3 inline-flex h-[34px] w-full items-center justify-center rounded-lg px-4 text-[12.5px] font-medium text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={disabled || pending}
       type="submit"
     >
@@ -292,7 +298,7 @@ export function InvoiceForm({
       ) : null}
       <FormMessage state={state} />
       {!canCreateInvoice ? (
-        <p className="rounded-[7px] border border-border bg-[#f8f9fa] px-3 py-2 text-[11.5px] text-muted-foreground">
+        <p className="premium-soft-button rounded-[9px] border px-3 py-2 text-[11.5px] text-muted-foreground">
           Add at least one active customer and one active product/service before
           creating an invoice.
         </p>
@@ -314,11 +320,11 @@ export function InvoiceForm({
         </div>
       ) : null}
 
-      <div className="grid gap-2.5 rounded-[10px] border border-border bg-[#f8f9fa] p-3 md:grid-cols-4">
+      <div className="grid gap-2.5 rounded-[12px] border border-white/70 bg-white/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] md:grid-cols-4">
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Customer
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             defaultValue={initialCustomerId}
             disabled={!canCreateInvoice}
             name="customerId"
@@ -336,7 +342,7 @@ export function InvoiceForm({
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Template
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             name="templateId"
             onChange={(event) => selectTemplate(event.target.value)}
             value={selectedTemplateId}
@@ -353,7 +359,7 @@ export function InvoiceForm({
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Invoice date
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             defaultValue={initialInvoiceDate ?? todayDate()}
             name="invoiceDate"
             type="date"
@@ -362,13 +368,13 @@ export function InvoiceForm({
         <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
           Due date
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
             defaultValue={initialDueDate}
             name="dueDate"
             type="date"
           />
         </label>
-        <div className="rounded-[7px] border border-border bg-white p-3 md:col-span-4">
+        <div className="rounded-[10px] border border-white/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] md:col-span-4">
           <p className="text-[12px] font-medium">Status</p>
           <p className="mt-1 text-[11.5px] text-muted-foreground">
             Saved invoices start as draft.
@@ -377,10 +383,82 @@ export function InvoiceForm({
               : " No reusable template selected."}
           </p>
         </div>
+        {selectedTemplate ? (
+          <div className="grid gap-3 rounded-[10px] border border-white/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] md:col-span-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="flex items-start gap-3">
+              <div
+                className="h-14 w-20 shrink-0 rounded-lg border border-white/80 shadow-[0_12px_22px_rgba(30,45,75,0.12)]"
+                style={{
+                  backgroundColor: selectedTemplate.settings.accentColor,
+                }}
+              />
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[12px] font-semibold">
+                    {selectedTemplate.name}
+                  </p>
+                  {selectedTemplate.isDefault ? (
+                    <span className="rounded-[5px] border border-[#185fa5]/20 bg-[#e6f1fb] px-2 py-0.5 text-[9.5px] font-medium text-[#185fa5]">
+                      Default
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-[11.5px] capitalize text-muted-foreground">
+                  {selectedTemplate.settings.layout} layout /{" "}
+                  {selectedTemplate.settings.headerStyle} header /{" "}
+                  {selectedTemplate.settings.density} lines
+                </p>
+                <p className="mt-1 text-[11.5px] text-muted-foreground">
+                  {[
+                    selectedTemplate.settings.showLogo
+                      ? `logo ${selectedTemplate.settings.logoPlacement}`
+                      : null,
+                    selectedTemplate.settings.showSignature
+                      ? `signature ${selectedTemplate.settings.signaturePlacement}`
+                      : null,
+                    selectedTemplate.settings.showStamp
+                      ? `stamp ${selectedTemplate.settings.stampPlacement}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(", ") || "No branding assets selected"}
+                  {selectedTemplate.settings.defaultTerms ||
+                  selectedTemplate.settings.defaultNotes ||
+                  selectedTemplate.settings.paymentInstructions ||
+                  selectedTemplate.settings.footerText
+                    ? " / default copy available"
+                    : ""}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              <Link
+                className="premium-soft-button inline-flex h-[31px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
+                href={`/dashboard/templates/${selectedTemplate.id}`}
+              >
+                Edit template
+              </Link>
+              <Link
+                className="premium-soft-button inline-flex h-[31px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
+                href={`/dashboard/templates/${selectedTemplate.id}/preview`}
+                target="_blank"
+              >
+                Preview PDF
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-[10px] border border-white/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] md:col-span-4">
+            <p className="text-[12px] font-medium">No template selected</p>
+            <p className="mt-1 text-[11.5px] text-muted-foreground">
+              This invoice will use the business default terms and notes only.
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="overflow-hidden rounded-[10px] border border-border bg-white">
-        <div className="flex flex-col gap-2 border-b border-border bg-[#f8f9fa] p-3 md:flex-row md:items-center md:justify-between">
+      <div className="overflow-hidden rounded-[12px] border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <div className="flex flex-col gap-2 border-b border-border bg-white/55 p-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[11px] text-[#94a3b8]">
               Line items
@@ -388,7 +466,7 @@ export function InvoiceForm({
             <h3 className="text-[13px] font-medium">Products and services</h3>
           </div>
           <button
-            className="h-[31px] rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb] disabled:cursor-not-allowed disabled:opacity-60"
+            className="premium-soft-button h-[31px] rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!canCreateInvoice}
             onClick={addLine}
             type="button"
@@ -424,7 +502,7 @@ export function InvoiceForm({
 
             return (
               <div
-                className="grid gap-2 rounded-[9px] border border-border bg-white p-2"
+                className="grid gap-2 rounded-[10px] border border-white/70 bg-white/80 p-2 shadow-[0_10px_22px_rgba(30,45,75,0.06)]"
                 key={line.id}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -442,7 +520,7 @@ export function InvoiceForm({
                   <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Item
                     <select
-                      className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       disabled={!canCreateInvoice}
                       name="productId"
                       onChange={(event) => {
@@ -492,7 +570,7 @@ export function InvoiceForm({
                   <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Qty
                     <input
-                      className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="1"
                       name="quantity"
                       onChange={(event) =>
@@ -507,7 +585,7 @@ export function InvoiceForm({
                   <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Unit price
                     <input
-                      className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="unitPrice"
                       onChange={(event) =>
@@ -521,7 +599,7 @@ export function InvoiceForm({
                   <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Discount
                     <input
-                      className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="discount"
                       onChange={(event) =>
@@ -535,7 +613,7 @@ export function InvoiceForm({
                   <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Tax %
                     <input
-                      className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="taxRate"
                       onChange={(event) =>
@@ -548,7 +626,7 @@ export function InvoiceForm({
                   </label>
                   <div className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Line total
-                    <div className="grid h-[34px] items-center rounded-[7px] border border-border bg-[#f8f9fa] px-2.5">
+                    <div className="grid h-[34px] items-center rounded-[8px] border border-white/70 bg-white/60 px-2.5">
                       <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-[12px] font-medium text-foreground">
                         {lineTotal.toFixed(2)}
@@ -571,7 +649,7 @@ export function InvoiceForm({
           <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
             Terms
             <textarea
-              className="min-h-20 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
+              className="min-h-20 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
               name="terms"
               onChange={(event) => setTerms(event.target.value)}
               value={terms}
@@ -580,14 +658,14 @@ export function InvoiceForm({
           <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
             Notes
             <textarea
-              className="min-h-20 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
+              className="min-h-20 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
               name="notes"
               onChange={(event) => setNotes(event.target.value)}
               value={notes}
             />
           </label>
         </div>
-        <div className="rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+        <div className="rounded-[12px] border border-white/70 bg-white/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
           <p className="text-[11px] text-[#94a3b8]">
             Draft totals
           </p>

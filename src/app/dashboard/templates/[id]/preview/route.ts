@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireTemplateManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { generateInvoicePdf } from "@/app/_backend/lib/invoice-pdf";
 
@@ -22,7 +22,7 @@ function previewFilename(templateName: string) {
 }
 
 export async function GET(_request: Request, { params }: TemplatePreviewRouteProps) {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
   const { id } = await params;
   const template = await prisma.invoiceTemplate.findFirst({
     where: {

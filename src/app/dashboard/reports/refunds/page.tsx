@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireReportViewer } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 
 type RefundsReportPageProps = {
@@ -103,7 +103,7 @@ function MetricCard({
 export default async function RefundsReportPage({
   searchParams,
 }: RefundsReportPageProps) {
-  const user = await requireUser();
+  const user = await requireReportViewer();
   const money = currencyFormatter(user.business.currency);
   const params = await searchParams;
   const defaults = defaultDateRange();

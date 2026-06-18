@@ -71,13 +71,36 @@ function MetricCard({
   label,
   value,
   helper,
+  tone,
 }: {
   helper: string;
   label: string;
+  tone: "amber" | "blue" | "green" | "red";
   value: string;
 }) {
+  const toneClasses = {
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+    red: "bg-[#fef2f2] text-[#b91c1c]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
+    red: "from-[#ef4444] to-[#fb7185]",
+  };
+
   return (
-    <div className="rounded-[14px] border border-border bg-white p-[15px]">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
+      <div
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
+      >
+        {label.slice(0, 2).toUpperCase()}
+      </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
@@ -87,13 +110,26 @@ function MetricCard({
   );
 }
 
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">ST</div>
+      </div>
+    </div>
+  );
+}
+
 function MovementBadge({ type }: { type: string }) {
   const style =
     type === "stock_in" || type === "refund_return"
-      ? "bg-[#eaf3de] text-[#3b6d11]"
+      ? "bg-[#ecfdf5] text-[#047857]"
       : type === "stock_out" || type === "invoice_deduction"
         ? "bg-red-50 text-red-700"
-        : "bg-muted text-muted-foreground";
+        : "bg-[#eef2ff] text-[#4f46e5]";
 
   return (
     <span
@@ -289,10 +325,11 @@ export default async function InventoryPage({
   }`;
 
   return (
-    <div className="grid gap-3.5">
-      <header className="flex flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] flex flex-col gap-4 overflow-hidden rounded-[16px] border p-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Inventory
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -304,38 +341,42 @@ export default async function InventoryPage({
           </p>
         </div>
         <Link
-          className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+          className="premium-soft-button inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
           href="/dashboard/products"
         >
           Back to products
         </Link>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-4">
         <MetricCard
           helper="Active products with stock tracking"
           label="Stock items"
+          tone="blue"
           value={String(products.length)}
         />
         <MetricCard
           helper="Current on-hand quantity"
           label="Total units"
+          tone="green"
           value={decimalText(totalUnits)}
         />
         <MetricCard
           helper="On-hand stock at cost"
           label="Valuation"
+          tone="amber"
           value={money.format(valuation)}
         />
         <MetricCard
           helper="At or below alert threshold"
           label="Low stock"
+          tone="red"
           value={String(lowStockProducts.length)}
         />
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
               Stock movement
@@ -355,7 +396,7 @@ export default async function InventoryPage({
         </div>
 
         <div className="grid gap-3.5 content-start">
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -395,7 +436,7 @@ export default async function InventoryPage({
                   <tbody className="divide-y divide-border">
                     {lowStockProducts.map((product) => (
                       <tr
-                        className="transition hover:bg-[#e6f1fb]/40"
+                        className="transition hover:bg-[#635bff]/[0.04]"
                         key={product.id}
                       >
                         <td className="px-5 py-4 align-top">
@@ -426,8 +467,8 @@ export default async function InventoryPage({
         </div>
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -444,12 +485,12 @@ export default async function InventoryPage({
 
           <form
             action="/dashboard/inventory"
-            className="grid gap-4 border-b border-border bg-[#f8f9fa] p-5 md:grid-cols-2"
+            className="grid gap-4 border-b border-border bg-white/45 p-5 md:grid-cols-2"
           >
             <label className="grid gap-2 text-sm font-medium text-foreground">
               Product
               <select
-                className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+                className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
                 defaultValue={selectedProductId ?? ""}
                 name="productId"
               >
@@ -466,7 +507,7 @@ export default async function InventoryPage({
             <label className="grid gap-2 text-sm font-medium text-foreground">
               Movement type
               <select
-                className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+                className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
                 defaultValue={selectedType}
                 name="type"
               >
@@ -481,7 +522,7 @@ export default async function InventoryPage({
             <label className="grid gap-2 text-sm font-medium text-foreground">
               From
               <input
-                className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+                className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
                 defaultValue={from ?? ""}
                 name="from"
                 type="date"
@@ -491,7 +532,7 @@ export default async function InventoryPage({
             <label className="grid gap-2 text-sm font-medium text-foreground">
               To
               <input
-                className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+                className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
                 defaultValue={to ?? ""}
                 name="to"
                 type="date"
@@ -500,19 +541,19 @@ export default async function InventoryPage({
 
             <div className="flex flex-wrap gap-2 md:col-span-2">
               <button
-                className="inline-flex h-[34px] items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
+                className="premium-button inline-flex h-[34px] items-center justify-center rounded-lg px-3 text-[11.5px] font-medium text-white transition hover:brightness-105"
                 type="submit"
               >
                 Apply filters
               </button>
               <Link
-                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+                className="premium-soft-button inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
                 href={xlsxHref}
               >
                 Download XLSX
               </Link>
               <Link
-                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+                className="premium-soft-button inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
                 href="/dashboard/inventory"
               >
                 Clear
@@ -556,7 +597,7 @@ export default async function InventoryPage({
                 <tbody className="divide-y divide-border">
                   {movementSummary.map((summary) => (
                     <tr
-                      className="transition hover:bg-[#e6f1fb]/40"
+                      className="transition hover:bg-[#635bff]/[0.04]"
                       key={summary.productId}
                     >
                       <td className="px-5 py-4 align-top">
@@ -593,7 +634,7 @@ export default async function InventoryPage({
           )}
         </div>
 
-          <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+          <div className="premium-card overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -635,7 +676,7 @@ export default async function InventoryPage({
                   <tbody className="divide-y divide-border">
                     {movements.map((movement) => (
                       <tr
-                        className="transition hover:bg-[#e6f1fb]/40"
+                        className="transition hover:bg-[#635bff]/[0.04]"
                         key={movement.id}
                       >
                         <td className="px-5 py-4 align-top">

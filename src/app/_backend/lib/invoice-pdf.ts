@@ -372,11 +372,15 @@ function loadAssetImage(assetPath: string | null, name: string): PdfImage | null
   return image ? { ...image, name } : null;
 }
 
-function buildPdf(content: string, images: PdfImage[]) {
+function buildPdf(pageContents: string[], images: PdfImage[]) {
   const parts: Buffer[] = [];
   const offsets: number[] = [];
   let length = Buffer.byteLength("%PDF-1.4\n", "ascii");
-  const imageStartObjectId = 6;
+  const pageCount = pageContents.length;
+  const pageStartObjectId = 3;
+  const fontObjectId = pageStartObjectId + pageCount;
+  const contentStartObjectId = fontObjectId + 1;
+  const imageStartObjectId = contentStartObjectId + pageCount;
   const imageResources = images
     .map((image, index) => `/${image.name} ${imageStartObjectId + index} 0 R`)
     .join(" ");
@@ -410,15 +414,23 @@ function buildPdf(content: string, images: PdfImage[]) {
   }
 
   addObject("<< /Type /Catalog /Pages 2 0 R >>");
-  addObject("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
   addObject(
-    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> ${xObjectResources} >> /Contents 5 0 R >>`,
+    `<< /Type /Pages /Kids [${pageContents
+      .map((_, index) => `${pageStartObjectId + index} 0 R`)
+      .join(" ")}] /Count ${pageCount} >>`,
   );
+  for (let index = 0; index < pageCount; index += 1) {
+    addObject(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontObjectId} 0 R >> ${xObjectResources} >> /Contents ${contentStartObjectId + index} 0 R >>`,
+    );
+  }
   addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
-  streamObject(
-    `<< /Length ${Buffer.byteLength(content, "ascii")} >>`,
-    Buffer.from(content, "ascii"),
-  );
+  for (const content of pageContents) {
+    streamObject(
+      `<< /Length ${Buffer.byteLength(content, "ascii")} >>`,
+      Buffer.from(content, "ascii"),
+    );
+  }
 
   for (const image of images) {
     streamObject(
@@ -469,12 +481,15 @@ export function generateInvoicePdf(invoice: InvoicePdfInput, currency: string) {
   const images = [logo, signature, stamp].filter(
     (image): image is PdfImage => Boolean(image),
   );
-  const content: string[] = ["0.8 w"];
+  const pages: string[][] = [];
+  let content: string[] = ["0.8 w"];
   const hasLeftLogo = Boolean(logo && settings.logoPlacement === "left");
   const hasRightLogo = Boolean(logo && settings.logoPlacement === "right");
   const headerBusinessX = hasLeftLogo ? 148 : 42;
   const lineStep = settings.density === "compact" ? 15 : 18;
   let y = 760;
+
+  pages.push(content);
 
   content.push(fillRect(42, 782, 528, 5, settings.accentColor));
 
@@ -535,24 +550,49 @@ export function generateInvoicePdf(invoice: InvoicePdfInput, currency: string) {
     );
   }
 
-  y -= 36;
-  content.push(rule(42, y + 18, 570, y + 18));
-  content.push(pdfLine("Item", 42, y, 10));
-  content.push(pdfLine("Qty", 300, y, 10));
-  content.push(pdfLine("Price", 350, y, 10));
-  content.push(pdfLine("Tax", 430, y, 10));
-  content.push(pdfLine("Total", 512, y, 10));
-  y -= 10;
-  content.push(rule(42, y, 570, y));
-  y -= 18;
+  function addTableHeader() {
+    content.push(rule(42, y + 18, 570, y + 18));
+    content.push(pdfLine("Item", 42, y, 10));
+    content.push(pdfLine("Qty", 300, y, 10));
+    content.push(pdfLine("Price", 350, y, 10));
+    content.push(pdfLine("Tax", 430, y, 10));
+    content.push(pdfLine("Total", 512, y, 10));
+    y -= 10;
+    content.push(rule(42, y, 570, y));
+    y -= 18;
+  }
 
-  for (const item of invoice.items.slice(0, 20)) {
+  function startContinuationPage(includeTableHeader: boolean) {
+    content = ["0.8 w", fillRect(42, 782, 528, 5, settings.accentColor)];
+    pages.push(content);
+    y = 750;
+    content.push(pdfLine(text(invoice.business.name, "Business"), 42, y, 16));
+    content.push(pdfLine("Invoice continued", 424, y, 16));
+    y -= 20;
+    content.push(pdfLine(`# ${text(invoice.invoiceNumber)}`, 424, y, 10));
+    content.push(rule(42, y - 14, 570, y - 14));
+    y -= 48;
+    if (includeTableHeader) addTableHeader();
+  }
+
+  y -= 36;
+  addTableHeader();
+
+  for (const item of invoice.items) {
+    const hasDescription =
+      settings.showItemDescriptions && Boolean(item.description || item.unit);
+    const rowHeight = lineStep + (hasDescription ? 11 : 0);
+
+    if (y - rowHeight < 72) {
+      startContinuationPage(true);
+    }
+
     content.push(pdfLine(truncate(text(item.itemName, "Line item"), 44), 42, y));
     content.push(pdfLine(Number(item.quantity).toFixed(2), 300, y));
     content.push(pdfLine(moneyText(item.unitPrice, currency), 350, y));
     content.push(pdfLine(moneyText(item.taxAmount, currency), 430, y));
     content.push(pdfLine(moneyText(item.lineTotal, currency), 512, y));
-    if (settings.showItemDescriptions && (item.description || item.unit)) {
+    if (hasDescription) {
       y -= 11;
       content.push(
         pdfLine(
@@ -566,12 +606,21 @@ export function generateInvoicePdf(invoice: InvoicePdfInput, currency: string) {
     y -= lineStep;
   }
 
-  if (invoice.items.length > 20) {
-    content.push(pdfLine(`+ ${invoice.items.length - 20} more line items`, 42, y));
-    y -= 18;
+  const summaryHeight =
+    136 +
+    (settings.paymentInstructions ? 39 : 0) +
+    (invoice.terms ? 39 : 0) +
+    (invoice.notes ? 39 : 0) +
+    (settings.footerText ? 30 : 0);
+  const summaryBottom = signature || stamp ? 160 : 42;
+  const summaryStart = Math.min(y - 10, 280);
+
+  if (summaryStart - summaryHeight < summaryBottom) {
+    startContinuationPage(false);
+  } else {
+    y = summaryStart;
   }
 
-  y = Math.min(y - 10, 280);
   content.push(rule(340, y, 570, y));
   y -= 18;
 
@@ -646,5 +695,8 @@ export function generateInvoicePdf(invoice: InvoicePdfInput, currency: string) {
     content.push(pdfLine("Stamp", x + 22, 52, 9));
   }
 
-  return buildPdf(content.join("\n"), images);
+  return buildPdf(
+    pages.map((page) => page.join("\n")),
+    images,
+  );
 }

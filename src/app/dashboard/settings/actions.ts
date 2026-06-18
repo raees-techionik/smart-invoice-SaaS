@@ -438,3 +438,47 @@ export async function updateTeamUser(formData: FormData) {
 
   revalidatePath("/dashboard/settings");
 }
+
+export async function resetTeamUserPassword(formData: FormData) {
+  const user = await requireTeamManager();
+  const targetUserId = formValue(formData, "userId");
+  const password = formValue(formData, "password");
+
+  if (!targetUserId || !password) {
+    return;
+  }
+
+  if (password.length < 8) {
+    return;
+  }
+
+  const targetUser = await prisma.user.findFirst({
+    where: {
+      businessId: user.businessId,
+      id: targetUserId,
+    },
+  });
+
+  if (!targetUser || targetUser.role === "owner") {
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.user.update({
+      data: {
+        password: hashPassword(password),
+        status: "active",
+      },
+      where: {
+        id: targetUser.id,
+      },
+    }),
+    prisma.session.deleteMany({
+      where: {
+        userId: targetUser.id,
+      },
+    }),
+  ]);
+
+  revalidatePath("/dashboard/settings");
+}

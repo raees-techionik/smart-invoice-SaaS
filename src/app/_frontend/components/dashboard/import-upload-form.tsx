@@ -50,7 +50,7 @@ export function ImportUploadForm() {
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Import target
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue="customers"
             name="importType"
             required
@@ -65,7 +65,7 @@ export function ImportUploadForm() {
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Document type
           <select
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition focus:border-accent"
             defaultValue="csv"
             name="documentType"
             required
@@ -83,7 +83,7 @@ export function ImportUploadForm() {
         Source file
         <input
           accept=".csv,.txt,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,application/pdf,image/jpeg,image/png,image/webp,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          className="rounded-[10px] border border-dashed border-border bg-[#f8f9fa] px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-accent/60"
+          className="rounded-[10px] border border-dashed border-white/70 bg-white/65 px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#635bff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#635bff]/60"
           name="importFile"
           required
           type="file"

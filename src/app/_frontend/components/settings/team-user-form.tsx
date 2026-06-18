@@ -40,7 +40,7 @@ export function TeamUserForm() {
         Name
         <input
           autoComplete="name"
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(36,42,94,0.04)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           name="name"
           placeholder="Team member name"
           required
@@ -50,7 +50,7 @@ export function TeamUserForm() {
         Email
         <input
           autoComplete="email"
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(36,42,94,0.04)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           name="email"
           placeholder="member@example.com"
           required
@@ -61,7 +61,7 @@ export function TeamUserForm() {
         Temporary password
         <input
           autoComplete="new-password"
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(36,42,94,0.04)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           minLength={8}
           name="password"
           placeholder="Minimum 8 characters"
@@ -72,7 +72,7 @@ export function TeamUserForm() {
       <label className="grid gap-2 text-sm font-medium">
         Role
         <select
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           defaultValue="staff"
           name="role"
           required

@@ -50,21 +50,42 @@ function MetricCard({
   value: string;
 }) {
   const toneClasses = {
-    amber: "bg-[#faeeda] text-[#854f0b]",
-    blue: "bg-[#e6f1fb] text-[#185fa5]",
-    green: "bg-[#eaf3de] text-[#3b6d11]",
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
   };
 
   return (
-    <div className="rounded-[14px] border border-border bg-white p-3.5">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-3.5">
       <div
-        className={`mb-2 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-2 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
         {label.slice(0, 2).toUpperCase()}
       </div>
       <p className="font-mono text-[20px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-1.5 text-[10.5px] text-[#94a3b8]">{helper}</p>
+    </div>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">BX</div>
+      </div>
     </div>
   );
 }
@@ -150,10 +171,11 @@ export default async function ProductsPage({
   const lowStockItems = stockItems.filter(isLowStock).length;
 
   return (
-    <div className="grid gap-3">
-      <header className="grid gap-4 rounded-[14px] border border-border bg-white p-3.5 lg:grid-cols-[1fr_auto] lg:items-end">
+    <div className="relative grid gap-3">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] grid gap-4 overflow-hidden rounded-[16px] border p-3.5 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Products
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -167,20 +189,20 @@ export default async function ProductsPage({
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <form action="/dashboard/products" className="flex gap-2">
             <input
-              className="h-[34px] min-w-0 rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+              className="h-[34px] min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
               defaultValue={search}
               name="q"
               placeholder="Search items"
             />
             <button
-              className="h-[34px] rounded-lg bg-accent px-4 text-[12px] font-medium text-white transition hover:bg-[#2d7bc9]"
+              className="premium-button h-[34px] rounded-lg px-4 text-[12px] font-medium text-white transition hover:brightness-105"
               type="submit"
             >
               Search
             </button>
           </form>
           <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+            className="premium-soft-button inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition hover:border-[#635bff]/30 hover:bg-white"
             href="/dashboard/inventory"
           >
             Inventory
@@ -188,7 +210,7 @@ export default async function ProductsPage({
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="relative z-[1] grid gap-3 md:grid-cols-3">
         <MetricCard
           helper="Products and services in the catalog."
           label="Total items"
@@ -209,8 +231,8 @@ export default async function ProductsPage({
         />
       </section>
 
-      <section className="grid gap-3 xl:grid-cols-[0.88fr_1.12fr]">
-        <div className="rounded-[14px] border border-border bg-white p-3.5">
+      <section className="relative z-[1] grid gap-3 xl:grid-cols-[0.88fr_1.12fr]">
+        <div className="premium-card rounded-[16px] border p-3.5">
           <div className="mb-2.5 flex items-center justify-between gap-4">
             <h3 className="text-[13px] font-medium">New catalog item</h3>
             <span className="text-[11px] text-[#94a3b8]">Product/service</span>
@@ -218,7 +240,7 @@ export default async function ProductsPage({
           <ProductForm />
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-3.5">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-3.5">
           <div className="mb-2.5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h3 className="text-[13px] font-medium">
                 {search ? `Matches for "${search}"` : "Latest items"}
@@ -262,7 +284,7 @@ export default async function ProductsPage({
 
                     return (
                       <tr
-                        className="border-b border-border transition last:border-0 hover:bg-black/[0.015]"
+                        className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={product.id}
                       >
                         <td className="py-2 pr-4 align-top">

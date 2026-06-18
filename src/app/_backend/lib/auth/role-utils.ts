@@ -13,3 +13,19 @@ export function canManageSettings(role: string) {
 export function canManageTeam(role: string) {
   return role === "owner";
 }
+
+export function canManageTemplates(role: string) {
+  return role === "owner" || role === "admin";
+}
+
+export function canViewReports(role: string) {
+  return role === "owner" || role === "admin";
+}
+
+export function canExportData(role: string) {
+  return role === "owner" || role === "admin";
+}
+
+export function canRestoreData(role: string) {
+  return role === "owner";
+}

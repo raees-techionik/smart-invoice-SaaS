@@ -16,16 +16,16 @@ function dateFormatter(date: Date) {
 function StatusBadge({ status }: { status: string }) {
   const tone =
     status === "imported"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      ? "border-emerald-200 bg-[#ecfdf5] text-[#047857]"
       : status === "imported_with_errors"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
+        ? "border-amber-200 bg-[#fff7ed] text-[#b45309]"
         : status === "reviewed"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-      : status === "needs_review"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : status === "failed"
-          ? "border-red-200 bg-red-50 text-red-700"
-          : "border-border bg-muted text-muted-foreground";
+          ? "border-emerald-200 bg-[#ecfdf5] text-[#047857]"
+          : status === "needs_review"
+            ? "border-amber-200 bg-[#fff7ed] text-[#b45309]"
+            : status === "failed"
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-[#c7d2fe] bg-[#eef2ff] text-[#4f46e5]";
 
   return (
     <span
@@ -39,19 +39,55 @@ function StatusBadge({ status }: { status: string }) {
 function MetricCard({
   helper,
   label,
+  tone,
   value,
 }: {
   helper: string;
   label: string;
+  tone: "amber" | "blue" | "green" | "red";
   value: string | number;
 }) {
+  const toneClasses = {
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+    red: "bg-[#fef2f2] text-[#b91c1c]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
+    red: "from-[#ef4444] to-[#fb7185]",
+  };
+
   return (
-    <div className="rounded-[14px] border border-border bg-white p-[15px]">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
+      <div
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
+      >
+        {label.slice(0, 2).toUpperCase()}
+      </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-2 text-sm text-muted-foreground">{helper}</p>
+    </div>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">SC</div>
+      </div>
     </div>
   );
 }
@@ -117,10 +153,11 @@ export default async function ImportsPage() {
     ]);
 
   return (
-    <div className="grid gap-3.5">
-      <header className="flex flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] flex flex-col gap-4 overflow-hidden rounded-[16px] border p-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             OCR and imports
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -135,31 +172,35 @@ export default async function ImportsPage() {
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-4">
         <MetricCard
           helper="Import jobs created so far."
           label="Jobs"
+          tone="blue"
           value={totalJobs}
         />
         <MetricCard
           helper="Jobs waiting for manual correction."
           label="Needs review"
+          tone="amber"
           value={needsReviewJobs}
         />
         <MetricCard
           helper="Jobs marked reviewed."
           label="Reviewed"
+          tone="green"
           value={reviewedJobs}
         />
         <MetricCard
           helper="Stored source documents."
           label="Documents"
+          tone="red"
           value={documentCount}
         />
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.82fr_1.18fr]">
-        <div className="rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.82fr_1.18fr]">
+        <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
               New import
@@ -167,14 +208,14 @@ export default async function ImportsPage() {
             <h3 className="mt-1 text-[13px] font-medium">Upload source file</h3>
           </div>
           <ImportUploadForm />
-          <div className="mt-6 rounded-[10px] border border-dashed border-border bg-[#f8f9fa] p-4">
+          <div className="mt-6 rounded-[10px] border border-dashed border-white/70 bg-white/55 p-4">
             <p className="text-sm font-medium text-muted-foreground">
               Excel templates
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {importTypes.map((importType) => (
                 <Link
-                  className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+                  className="premium-soft-button inline-flex min-h-[34px] items-center justify-center rounded-lg border px-3 py-1.5 text-center text-[11.5px] font-medium leading-tight transition hover:border-[#635bff]/30 hover:bg-white"
                   href={`/dashboard/imports/templates/${importType}`}
                   key={importType}
                 >
@@ -185,7 +226,7 @@ export default async function ImportsPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -222,7 +263,10 @@ export default async function ImportsPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {jobs.map((job) => (
-                    <tr className="transition hover:bg-[#e6f1fb]/40" key={job.id}>
+                    <tr
+                      className="transition hover:bg-[#635bff]/[0.04]"
+                      key={job.id}
+                    >
                       <td className="px-5 py-4 align-top">
                         <Link
                           className="font-semibold text-accent hover:underline"

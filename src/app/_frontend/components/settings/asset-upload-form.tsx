@@ -39,7 +39,7 @@ export function AssetUploadForm() {
       <label className="grid gap-2 text-sm font-medium">
         Asset type
         <select
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           name="assetType"
           required
         >
@@ -52,7 +52,7 @@ export function AssetUploadForm() {
         Image file
         <input
           accept="image/jpeg,image/png,image/svg+xml,image/webp"
-          className="rounded-md border border-border bg-white px-3 py-2 text-sm outline-none transition file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-semibold focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="rounded-lg border border-dashed border-[#635bff]/25 bg-white/65 px-3 py-2 text-sm outline-none transition file:mr-3 file:rounded-lg file:border-0 file:bg-[#eeecff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[#5147d9] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10"
           name="asset"
           required
           type="file"

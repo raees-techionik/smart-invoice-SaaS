@@ -2,10 +2,11 @@ import Link from "next/link";
 
 import {
   deleteInvoiceTemplate,
+  duplicateInvoiceTemplate,
   setDefaultInvoiceTemplate,
 } from "@/app/dashboard/templates/actions";
 import { InvoiceTemplateForm } from "@/app/_frontend/components/dashboard/invoice-template-form";
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireTemplateManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
 
@@ -54,7 +55,7 @@ function DefaultBadge({ isDefault }: { isDefault: boolean }) {
 }
 
 export default async function InvoiceTemplatesPage() {
-  const user = await requireUser();
+  const user = await requireTemplateManager();
 
   const templates = await prisma.invoiceTemplate.findMany({
     include: {
@@ -244,6 +245,26 @@ export default async function InvoiceTemplatesPage() {
                     >
                       Edit
                     </Link>
+                    <Link
+                      className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+                      href={`/dashboard/templates/${template.id}/preview`}
+                      target="_blank"
+                    >
+                      Preview
+                    </Link>
+                    <form action={duplicateInvoiceTemplate}>
+                      <input
+                        name="templateId"
+                        type="hidden"
+                        value={template.id}
+                      />
+                      <button
+                        className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+                        type="submit"
+                      >
+                        Duplicate
+                      </button>
+                    </form>
                     {!template.isDefault ? (
                       <form action={setDefaultInvoiceTemplate}>
                         <input
@@ -255,23 +276,29 @@ export default async function InvoiceTemplatesPage() {
                           className="inline-flex h-[34px] items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
                           type="submit"
                         >
-                          Set default
-                        </button>
-                      </form>
-                    ) : null}
-                    <form action={deleteInvoiceTemplate}>
-                      <input
-                        name="templateId"
-                        type="hidden"
-                        value={template.id}
-                      />
-                      <button
-                        className="inline-flex h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50"
-                        type="submit"
-                      >
-                        Delete
+                        Set default
                       </button>
                     </form>
+                  ) : null}
+                    {template._count.invoices > 0 ? (
+                      <span className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-[#f8f9fa] px-3 text-[11.5px] font-medium text-muted-foreground">
+                        In use
+                      </span>
+                    ) : (
+                      <form action={deleteInvoiceTemplate}>
+                        <input
+                          name="templateId"
+                          type="hidden"
+                          value={template.id}
+                        />
+                        <button
+                          className="inline-flex h-[34px] items-center justify-center rounded-lg border border-red-200 bg-white px-3 text-[11.5px] font-medium text-red-700 transition hover:bg-red-50"
+                          type="submit"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </article>
               ))}

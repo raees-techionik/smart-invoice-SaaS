@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { requireUser } from "@/app/_backend/lib/auth/session";
+import { requireDataExporter } from "@/app/_backend/lib/auth/roles";
 import { buildBusinessWorkbookExport } from "@/app/_backend/lib/exports";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const user = await requireUser();
+  const user = await requireDataExporter();
   const exportFile = await buildBusinessWorkbookExport(user.businessId);
 
   return new NextResponse(new Uint8Array(exportFile.buffer), {

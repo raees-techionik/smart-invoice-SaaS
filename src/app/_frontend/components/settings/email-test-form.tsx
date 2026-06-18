@@ -42,7 +42,7 @@ export function EmailTestForm({
   const [state, action] = useActionState(sendBusinessEmailTest, initialState);
 
   return (
-    <form action={action} className="grid gap-4 rounded-md border border-border bg-muted p-4">
+    <form action={action} className="grid gap-4 rounded-xl border border-white/75 bg-white/55 p-4 shadow-[0_12px_28px_rgba(36,42,94,0.06)]">
       <div>
         <p className="text-sm font-semibold">Send test email</p>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -53,7 +53,7 @@ export function EmailTestForm({
       <label className="grid gap-2 text-sm font-medium">
         Test recipient
         <input
-          className="h-11 rounded-md border border-border bg-white px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition placeholder:text-[#a4acc0] focus:border-[#635bff]/40 focus:bg-white focus:ring-2 focus:ring-[#635bff]/10 disabled:cursor-not-allowed disabled:opacity-60"
           defaultValue={defaultRecipientEmail}
           disabled={!canTest}
           name="recipientEmail"

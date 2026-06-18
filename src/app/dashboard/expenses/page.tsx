@@ -34,8 +34,8 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex rounded-[5px] px-2 py-0.5 text-[9.5px] font-medium capitalize ${
         active
-          ? "bg-[#eaf3de] text-[#3b6d11]"
-          : "bg-muted text-muted-foreground"
+          ? "bg-[#ecfdf5] text-[#047857]"
+          : "bg-[#eef2ff] text-[#4f46e5]"
       }`}
     >
       {status}
@@ -46,19 +46,53 @@ function StatusBadge({ status }: { status: string }) {
 function MetricCard({
   helper,
   label,
+  tone,
   value,
 }: {
   helper: string;
   label: string;
+  tone: "amber" | "blue" | "green";
   value: string;
 }) {
+  const toneClasses = {
+    amber: "bg-[#fff7ed] text-[#b45309]",
+    blue: "bg-[#eef2ff] text-[#4f46e5]",
+    green: "bg-[#ecfdf5] text-[#047857]",
+  };
+  const toneLineClasses = {
+    amber: "from-[#f59e0b] to-[#f97316]",
+    blue: "from-[#635bff] to-[#22d3ee]",
+    green: "from-[#00a884] to-[#6ee7b7]",
+  };
+
   return (
-    <div className="rounded-[14px] border border-border bg-white p-[15px]">
+    <div className="premium-card premium-card-hover relative overflow-hidden rounded-[16px] border p-[15px]">
+      <div
+        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
+      />
+      <div
+        className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
+      >
+        {label.slice(0, 2).toUpperCase()}
+      </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-2 text-sm text-muted-foreground">{helper}</p>
+    </div>
+  );
+}
+
+function PremiumVisual() {
+  return (
+    <div className="premium-visual hidden xl:block" aria-hidden="true">
+      <div className="premium-visual-rig">
+        <div className="premium-visual-floor" />
+        <div className="premium-visual-sheet" />
+        <div className="premium-visual-cube" />
+        <div className="premium-visual-coin">EX</div>
+      </div>
     </div>
   );
 }
@@ -139,10 +173,11 @@ export default async function ExpensesPage({
   const topCategory = categoryTotals[0];
 
   return (
-    <div className="grid gap-3.5">
-      <header className="flex flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="relative grid gap-3.5">
+      <PremiumVisual />
+      <header className="premium-card relative z-[1] flex flex-col gap-4 overflow-hidden rounded-[16px] border p-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#635bff]">
             Expenses
           </p>
           <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
@@ -157,8 +192,8 @@ export default async function ExpensesPage({
           <Link
             className={`inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition ${
               selectedStatus === "active"
-                ? "border-accent bg-accent text-white"
-                : "border-border bg-white hover:bg-[#e6f1fb]"
+                ? "premium-button border-transparent text-white hover:brightness-105"
+                : "premium-soft-button hover:border-[#635bff]/30 hover:bg-white"
             }`}
             href="/dashboard/expenses"
           >
@@ -167,8 +202,8 @@ export default async function ExpensesPage({
           <Link
             className={`inline-flex h-[34px] items-center justify-center rounded-lg border px-3 text-[11.5px] font-medium transition ${
               selectedStatus === "archived"
-                ? "border-accent bg-accent text-white"
-                : "border-border bg-white hover:bg-[#e6f1fb]"
+                ? "premium-button border-transparent text-white hover:brightness-105"
+                : "premium-soft-button hover:border-[#635bff]/30 hover:bg-white"
             }`}
             href="/dashboard/expenses?status=archived"
           >
@@ -177,15 +212,17 @@ export default async function ExpensesPage({
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-3">
         <MetricCard
           helper="Active expenses included in profit estimates."
           label="Active expense total"
+          tone="amber"
           value={money.format(totalActiveExpense)}
         />
         <MetricCard
           helper="Expense records currently counted."
           label="Active records"
+          tone="blue"
           value={String(activeCount)}
         />
         <MetricCard
@@ -195,12 +232,13 @@ export default async function ExpensesPage({
               : "No categories recorded yet."
           }
           label="Top category"
+          tone="green"
           value={topCategory?.category ?? "None"}
         />
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-[14px] border border-border bg-white p-4">
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
               New expense
@@ -211,7 +249,7 @@ export default async function ExpensesPage({
         </div>
 
         <div className="grid gap-3.5 content-start">
-          <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+          <div className="premium-card overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -238,7 +276,7 @@ export default async function ExpensesPage({
               <div className="divide-y divide-border">
                 {categoryTotals.map((category) => (
                   <div
-                    className="flex items-center justify-between gap-4 p-4"
+                    className="flex items-center justify-between gap-4 p-4 transition hover:bg-[#635bff]/[0.04]"
                     key={category.category}
                   >
                     <span className="font-semibold">{category.category}</span>
@@ -251,7 +289,7 @@ export default async function ExpensesPage({
             )}
           </div>
 
-          <div className="overflow-hidden rounded-[14px] border border-border bg-white p-4">
+          <div className="premium-card overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -298,7 +336,7 @@ export default async function ExpensesPage({
                   <tbody className="divide-y divide-border">
                     {expenses.map((expense) => (
                       <tr
-                        className="transition hover:bg-[#e6f1fb]/40"
+                        className="transition hover:bg-[#635bff]/[0.04]"
                         key={expense.id}
                       >
                         <td className="px-5 py-4 align-top">
