@@ -5,6 +5,8 @@ import { InvoiceForm } from "@/app/_frontend/components/dashboard/invoice-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 function currencyFormatter(currency: string) {
   return new Intl.NumberFormat("en-PK", {
@@ -91,7 +93,7 @@ function StatCard({
       <div
         className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -107,7 +109,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">INV</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="invoice" /></div>
       </div>
     </div>
   );
@@ -252,7 +254,7 @@ export default async function InvoicesPage() {
         />
       </section>
 
-      <section className="relative z-[1] grid gap-[11px] 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
+      <section className="relative z-[1] grid items-start gap-[11px] 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
         <Card subtitle="Draft workspace" title="New invoice">
           <InvoiceForm
             customers={customers}
@@ -349,8 +351,8 @@ export default async function InvoicesPage() {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] table-fixed border-collapse text-xs">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden pr-1">
+            <table className="responsive-data-table w-full table-fixed border-collapse text-xs">
               <thead>
                 <tr className="border-b border-border text-left text-[11px] font-normal text-[#94a3b8]">
                   <th className="w-[17%] pb-2 font-normal">Invoice</th>
@@ -371,7 +373,7 @@ export default async function InvoicesPage() {
                       className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                       key={invoice.id}
                     >
-                      <td className="truncate py-2 pr-3">
+                      <td className="truncate py-2 pr-3" data-label="Invoice">
                         <Link
                           className="font-medium text-[#185fa5]"
                           href={`/dashboard/invoices/${invoice.id}`}
@@ -382,25 +384,25 @@ export default async function InvoicesPage() {
                           Balance {money.format(Number(invoice.balanceAmount))}
                         </p>
                       </td>
-                      <td className="truncate py-2 pr-3">
+                      <td className="truncate py-2 pr-3" data-label="Customer">
                         <p className="truncate">{invoice.customer?.name ?? "No customer"}</p>
                         <p className="mt-1 truncate text-[10.5px] text-[#94a3b8]">
                           {invoice.customer?.businessName ?? "Individual"}
                         </p>
                       </td>
-                      <td className="truncate py-2 pr-3 text-muted-foreground">
+                      <td className="truncate py-2 pr-3 text-muted-foreground" data-label="Template">
                         {invoice.template?.name ?? "No template"}
                       </td>
-                      <td className="truncate py-2 pr-3 text-muted-foreground">
+                      <td className="truncate py-2 pr-3 text-muted-foreground" data-label="Date">
                         {dateFormatter(invoice.invoiceDate)}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono">
+                      <td className="py-2 pr-3 text-right font-mono" data-label="Items">
                         {invoice._count.items}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono font-medium">
+                      <td className="py-2 pr-3 text-right font-mono font-medium" data-label="Total">
                         {money.format(Number(invoice.grandTotal))}
                       </td>
-                      <td className="py-2 text-right">
+                      <td className="py-2 text-right" data-label="Status">
                         <span className="inline-flex flex-col items-end gap-1">
                           <Badge tone={invoice.status}>{invoice.status}</Badge>
                           <Badge tone={invoicePaymentStatus}>

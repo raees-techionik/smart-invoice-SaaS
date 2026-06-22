@@ -219,8 +219,8 @@ export default async function CustomerSalesReportPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1320px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Customer</th>
@@ -242,7 +242,7 @@ export default async function CustomerSalesReportPage({
                     className="transition hover:bg-[#e6f1fb]/40"
                     key={row.customerId ?? "no-customer"}
                   >
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" data-label="Customer">
                       <div className="font-semibold">
                         {row.customerId ? (
                           <Link
@@ -261,35 +261,35 @@ export default async function CustomerSalesReportPage({
                         </p>
                       ) : null}
                     </td>
-                    <td className="px-5 py-4 text-xs text-muted-foreground">
+                    <td className="px-5 py-4 text-xs text-muted-foreground" data-label="Contact">
                       <div>{row.phone ?? "No phone"}</div>
                       <div className="mt-1">{row.email ?? "No email"}</div>
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Invoices">
                       {row.invoiceCount}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Gross sales">
                       {money.format(row.grossSales)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Refunds">
                       {money.format(row.refundAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net sales">
                       {money.format(row.netSales)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Paid">
                       {money.format(row.paidAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Payments">
                       {money.format(row.paymentsReceived)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Outstanding">
                       {money.format(row.balanceAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right text-muted-foreground">
+                    <td className="px-5 py-4 text-right text-muted-foreground" data-label="Avg invoice">
                       {money.format(row.averageInvoiceValue)}
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">
+                    <td className="px-5 py-4 text-muted-foreground" data-label="Last invoice">
                       {row.lastInvoiceDate
                         ? dates.format(row.lastInvoiceDate)
                         : "No invoice"}

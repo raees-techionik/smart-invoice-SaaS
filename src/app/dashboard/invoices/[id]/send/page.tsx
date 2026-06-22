@@ -2,10 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { InvoiceEmailForm } from "@/app/_frontend/components/dashboard/invoice-email-form";
-import { SendInvoiceEmailForm } from "@/app/_frontend/components/dashboard/send-invoice-email-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import { hasCompleteEmailSettings } from "@/app/_backend/lib/email-settings";
 import { buildInvoiceEmailContent } from "@/app/_backend/lib/invoice-email";
 
 type SendInvoicePageProps = {
@@ -48,49 +46,36 @@ export default async function SendInvoicePage({
   const user = await requireUser();
   const { id } = await params;
 
-  const [invoice, emailSettings] = await Promise.all([
-    prisma.invoice.findFirst({
-      include: {
-        business: true,
-        customer: true,
-        emailSends: {
-          include: {
-            createdBy: {
-              select: {
-                email: true,
-                name: true,
-              },
+  const invoice = await prisma.invoice.findFirst({
+    include: {
+      business: true,
+      customer: true,
+      emailSends: {
+        include: {
+          createdBy: {
+            select: {
+              email: true,
+              name: true,
             },
           },
-          orderBy: {
-            preparedAt: "desc",
-          },
-          take: 5,
         },
-        items: {
-          orderBy: {
-            sortOrder: "asc",
-          },
+        orderBy: {
+          preparedAt: "desc",
         },
-        template: true,
+        take: 5,
       },
-      where: {
-        businessId: user.businessId,
-        id,
+      items: {
+        orderBy: {
+          sortOrder: "asc",
+        },
       },
-    }),
-    prisma.businessEmailSetting.findUnique({
-      select: {
-        fromEmail: true,
-        fromName: true,
-        smtpHost: true,
-        smtpPort: true,
-      },
-      where: {
-        businessId: user.businessId,
-      },
-    }),
-  ]);
+      template: true,
+    },
+    where: {
+      businessId: user.businessId,
+      id,
+    },
+  });
 
   if (!invoice) {
     notFound();
@@ -100,7 +85,6 @@ export default async function SendInvoicePage({
     invoice,
     user.business.currency,
   );
-  const canSend = hasCompleteEmailSettings(emailSettings);
 
   return (
     <div className="grid gap-3.5">
@@ -114,8 +98,8 @@ export default async function SendInvoicePage({
           </h2>
           <p className="mt-2 max-w-2xl text-xs leading-5 text-muted-foreground">
             Prepare the recipient, subject, and message body for this invoice.
-            Once SMTP is configured, send attempts are recorded here with
-            delivery status, provider message id, and any failure reason.
+            Copy this draft into your email app and attach the invoice PDF from
+            the preview/download links.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -139,12 +123,6 @@ export default async function SendInvoicePage({
           >
             Download PDF
           </Link>
-          <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
-            href="/dashboard/settings"
-          >
-            Email settings
-          </Link>
         </div>
       </header>
 
@@ -167,20 +145,12 @@ export default async function SendInvoicePage({
         </div>
 
         <aside className="grid content-start gap-4">
-          <div
-            className={`rounded-lg border p-5 ${
-              canSend
-                ? "border-green-200 bg-green-50 text-green-800"
-                : "border-amber-200 bg-amber-50 text-amber-900"
-            }`}
-          >
-            <p className="text-sm font-semibold">
-              {canSend ? "SMTP ready" : "SMTP not configured"}
-            </p>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-blue-800">
+            <p className="text-sm font-semibold">Manual email draft</p>
             <p className="mt-2 text-sm leading-6">
-              {canSend
-                ? `Sending from ${emailSettings?.fromName} <${emailSettings?.fromEmail}> via ${emailSettings?.smtpHost}:${emailSettings?.smtpPort}.`
-                : "Add SMTP host, port, and from email in Settings before sending prepared invoice emails."}
+              Automatic sending is disabled for the local-first MVP. Use this
+              page to prepare copy-ready content, then send it from your normal
+              email app with the downloaded invoice PDF attached.
             </p>
           </div>
 
@@ -260,26 +230,11 @@ export default async function SendInvoicePage({
                         emailSend.createdBy?.email ||
                         "Unknown user"}
                     </p>
-                    {emailSend.sentAt ? (
-                      <p className="text-xs text-muted-foreground">
-                        Sent {dateFormatter(emailSend.sentAt)}
-                      </p>
-                    ) : null}
-                    {emailSend.providerMessageId ? (
-                      <p className="break-all text-xs text-muted-foreground">
-                        Message ID: {emailSend.providerMessageId}
-                      </p>
-                    ) : null}
                     {emailSend.errorMessage ? (
                       <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">
                         {emailSend.errorMessage}
                       </p>
                     ) : null}
-                    <SendInvoiceEmailForm
-                      canSend={canSend}
-                      emailSendId={emailSend.id}
-                      status={emailSend.status}
-                    />
                   </div>
                 ))}
               </div>

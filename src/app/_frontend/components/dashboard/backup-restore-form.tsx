@@ -30,7 +30,7 @@ const sectionLabels: Record<string, string> = {
 function Message({ state }: { state: BackupRestoreActionState }) {
   if (state.error) {
     return (
-      <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+      <p className="rounded-lg border border-red-200 bg-red-50/90 px-3 py-2 text-sm font-medium text-red-700 shadow-[0_8px_18px_rgba(127,29,29,0.06)]">
         {state.error}
       </p>
     );
@@ -38,7 +38,7 @@ function Message({ state }: { state: BackupRestoreActionState }) {
 
   if (state.success) {
     return (
-      <p className="rounded-lg border border-[#cfe4b8] bg-[#f2f8ea] px-3 py-2 text-sm font-medium text-[#3b6d11]">
+      <p className="rounded-lg border border-[#cfe4b8] bg-[#f2f8ea]/90 px-3 py-2 text-sm font-medium text-[#3b6d11] shadow-[0_8px_18px_rgba(63,98,18,0.06)]">
         {state.success}
       </p>
     );
@@ -56,9 +56,9 @@ function BackupSummary({ state }: { state: BackupRestoreActionState }) {
   }
 
   return (
-    <div className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+    <div className="grid gap-3 rounded-[12px] border border-white/70 bg-white/50 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#635bff]">
           Backup preview
         </p>
         <p className="mt-1 text-sm font-semibold">
@@ -73,7 +73,7 @@ function BackupSummary({ state }: { state: BackupRestoreActionState }) {
       <div className="grid gap-2 sm:grid-cols-2">
         {Object.entries(summary.counts).map(([section, count]) => (
           <div
-            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+            className="flex items-center justify-between gap-3 rounded-lg border border-white/80 bg-white/70 px-3 py-2 text-sm shadow-[0_8px_18px_rgba(36,42,94,0.05)]"
             key={section}
           >
             <span>{sectionLabels[section] ?? section}</span>
@@ -89,7 +89,7 @@ function BackupSummary({ state }: { state: BackupRestoreActionState }) {
           </p>
           {Object.entries(restoreResult.restored).map(([section, result]) => (
             <div
-              className="grid grid-cols-4 gap-2 rounded-lg border border-border bg-white px-3 py-2 text-xs"
+              className="grid gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2 text-xs shadow-[0_8px_18px_rgba(36,42,94,0.05)] sm:grid-cols-4"
               key={section}
             >
               <span className="font-semibold">
@@ -133,7 +133,7 @@ export function BackupRestoreForm() {
           Backup JSON file
           <input
             accept=".json,application/json,text/plain"
-            className="rounded-[10px] border border-dashed border-border bg-[#f8f9fa] px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-accent/60"
+            className="rounded-[12px] border border-dashed border-white/80 bg-white/55 px-3 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] file:mr-4 file:rounded-md file:border-0 file:bg-[#635bff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#635bff]/40"
             name="backupFile"
             required
             type="file"
@@ -158,7 +158,7 @@ export function BackupRestoreForm() {
           Backup JSON file
           <input
             accept=".json,application/json,text/plain"
-            className="rounded-[10px] border border-dashed border-border bg-[#f8f9fa] px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-accent/60"
+            className="rounded-[12px] border border-dashed border-white/80 bg-white/55 px-3 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] file:mr-4 file:rounded-md file:border-0 file:bg-[#635bff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#635bff]/40"
             name="backupFile"
             required
             type="file"
@@ -167,7 +167,7 @@ export function BackupRestoreForm() {
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Confirmation
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+            className="h-[34px] rounded-lg border border-white/80 bg-white/70 px-3 text-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
             name="confirmation"
             placeholder="MERGE RESTORE"
             required

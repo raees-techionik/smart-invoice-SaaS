@@ -66,7 +66,7 @@ function TextareaField({
     <label className="grid gap-2 text-sm font-medium text-foreground">
       {label}
       <textarea
-        className="min-h-20 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+        className="min-h-20 rounded-lg border border-white/80 bg-white/70 px-3 py-2 text-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
         defaultValue={defaultValue}
         name={name}
         placeholder={placeholder}
@@ -90,7 +90,7 @@ function SelectField({
     <label className="grid gap-2 text-sm font-medium text-foreground">
       {label}
       <select
-        className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] capitalize outline-none transition focus:border-accent"
+        className="h-[34px] rounded-lg border border-white/80 bg-white/70 px-3 text-[12px] capitalize shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
         defaultValue={defaultValue}
         name={name}
       >
@@ -114,8 +114,13 @@ function ToggleField({
   name: string;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm font-medium">
-      <input defaultChecked={defaultChecked} name={name} type="checkbox" />
+    <label className="flex items-center gap-2 rounded-lg border border-white/70 bg-white/55 px-3 py-2 text-sm font-medium shadow-[0_8px_18px_rgba(36,42,94,0.05)]">
+      <input
+        className="size-4 accent-[#635bff]"
+        defaultChecked={defaultChecked}
+        name={name}
+        type="checkbox"
+      />
       {label}
     </label>
   );
@@ -149,7 +154,7 @@ export function InvoiceTemplateForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Template name
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+            className="h-[34px] rounded-lg border border-white/80 bg-white/70 px-3 text-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
             defaultValue={defaults?.name}
             name="name"
             placeholder="Standard invoice, Retail tax invoice..."
@@ -164,7 +169,7 @@ export function InvoiceTemplateForm({
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
         <SelectField
           defaultValue={settings?.headerStyle ?? "split"}
           label="Header style"
@@ -180,7 +185,7 @@ export function InvoiceTemplateForm({
         <label className="grid gap-2 text-sm font-medium text-foreground">
           Signature label
           <input
-            className="h-[34px] rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition placeholder:text-muted-foreground/70 focus:border-accent"
+            className="h-[34px] rounded-lg border border-white/80 bg-white/70 px-3 text-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
             defaultValue={settings?.signatureLabel ?? "Authorized signature"}
             name="signatureLabel"
             placeholder="Authorized signature"
@@ -188,15 +193,16 @@ export function InvoiceTemplateForm({
         </label>
       </div>
 
-      <fieldset className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+      <fieldset className="grid gap-3 rounded-[12px] border border-white/70 bg-white/45 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
         <legend className="px-1 text-sm font-semibold">Accent color</legend>
         <div className="flex flex-wrap gap-3">
           {invoiceTemplateAccentColors.map((color) => (
             <label
-              className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium"
+              className="flex items-center gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2 text-sm font-medium shadow-[0_8px_18px_rgba(36,42,94,0.05)]"
               key={color}
             >
               <input
+                className="accent-[#635bff]"
                 defaultChecked={(settings?.accentColor ?? "#0f8b6d") === color}
                 name="accentColor"
                 type="radio"
@@ -212,8 +218,8 @@ export function InvoiceTemplateForm({
         </div>
       </fieldset>
 
-      <div className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
-        <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid gap-3 rounded-[12px] border border-white/70 bg-white/45 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
           <ToggleField
             defaultChecked={settings?.showLogo ?? true}
             label="Show business logo"
@@ -236,7 +242,7 @@ export function InvoiceTemplateForm({
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           <SelectField
             defaultValue={settings?.logoPlacement ?? "left"}
             label="Logo placement"
@@ -258,7 +264,7 @@ export function InvoiceTemplateForm({
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3 md:grid-cols-2">
+      <div className="grid gap-3 rounded-[12px] border border-white/70 bg-white/45 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] md:grid-cols-2">
         <ToggleField
           defaultChecked={settings?.showBalanceBox ?? true}
           label="Show amount-due box"

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { InventoryAdjustmentForm } from "@/app/_frontend/components/dashboard/inventory-adjustment-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -99,7 +101,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
@@ -117,7 +119,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">ST</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="stock" /></div>
       </div>
     </div>
   );
@@ -144,6 +146,34 @@ function movementTypeLabel(type: string) {
   return (
     movementTypeOptions.find((option) => option.value === type)?.label ??
     type.replace(/_/g, " ")
+  );
+}
+
+function SummaryMetric({
+  label,
+  tone = "default",
+  value,
+}: {
+  label: string;
+  tone?: "accent" | "danger" | "default";
+  value: string;
+}) {
+  const valueClass =
+    tone === "accent"
+      ? "text-accent"
+      : tone === "danger"
+        ? "text-red-700"
+        : "text-foreground";
+
+  return (
+    <div className="min-w-0 rounded-[10px] border border-white/70 bg-white/55 px-3 py-2">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#94a3b8]">
+        {label}
+      </p>
+      <p className={`mt-1 truncate font-mono text-[12px] font-semibold ${valueClass}`}>
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -375,7 +405,7 @@ export default async function InventoryPage({
         />
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.9fr_1.1fr]">
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
@@ -396,7 +426,7 @@ export default async function InventoryPage({
         </div>
 
         <div className="grid gap-3.5 content-start">
-        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+        <div className="premium-card max-h-[760px] overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -420,8 +450,8 @@ export default async function InventoryPage({
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+              <div className="max-h-[620px] overflow-y-auto overflow-x-hidden pr-1">
+                <table className="responsive-data-table w-full border-collapse text-left text-sm">
                   <thead className="text-[11px] text-[#94a3b8]">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Product</th>
@@ -439,7 +469,7 @@ export default async function InventoryPage({
                         className="transition hover:bg-[#635bff]/[0.04]"
                         key={product.id}
                       >
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Product">
                           <Link
                             className="font-semibold text-accent hover:underline"
                             href={`/dashboard/products/${product.id}`}
@@ -450,11 +480,11 @@ export default async function InventoryPage({
                             {product.sku || product.category || "No SKU"}
                           </p>
                         </td>
-                        <td className="px-5 py-4 text-right align-top font-semibold">
+                        <td className="px-5 py-4 text-right align-top font-semibold" data-label="On hand">
                           {decimalText(product.stockQuantity)}{" "}
                           {product.unit || "units"}
                         </td>
-                        <td className="px-5 py-4 text-right align-top text-muted-foreground">
+                        <td className="px-5 py-4 text-right align-top text-muted-foreground" data-label="Alert">
                           {decimalText(product.lowStockAlert)}
                         </td>
                       </tr>
@@ -467,8 +497,8 @@ export default async function InventoryPage({
         </div>
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="premium-card max-h-[780px] overflow-hidden rounded-[16px] border p-4">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -572,69 +602,56 @@ export default async function InventoryPage({
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-                <thead className="text-[11px] text-[#94a3b8]">
-                  <tr>
-                    <th className="px-5 py-3 font-semibold">Product</th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      In
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Out
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Net
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      On hand
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Moves
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {movementSummary.map((summary) => (
-                    <tr
-                      className="transition hover:bg-[#635bff]/[0.04]"
-                      key={summary.productId}
-                    >
-                      <td className="px-5 py-4 align-top">
-                        <Link
-                          className="font-semibold text-accent hover:underline"
-                          href={`/dashboard/products/${summary.productId}`}
-                        >
-                          {summary.name}
-                        </Link>
-                        <p className="mt-1 text-muted-foreground">
-                          {summary.sku || "No SKU"}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold text-accent">
-                        {decimalText(summary.stockIn)} {summary.unit}
-                      </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold text-red-700">
-                        {decimalText(summary.stockOut)} {summary.unit}
-                      </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold">
-                        {decimalText(summary.net)} {summary.unit}
-                      </td>
-                      <td className="px-5 py-4 text-right align-top">
-                        {decimalText(summary.onHand)} {summary.unit}
-                      </td>
-                      <td className="px-5 py-4 text-right align-top text-muted-foreground">
-                        {summary.count}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid max-h-[500px] gap-3 overflow-y-auto p-5 pr-4">
+              {movementSummary.map((summary) => (
+                <article
+                  className="rounded-[14px] border border-white/70 bg-white/45 p-3 transition hover:border-[#635bff]/25 hover:bg-white/65"
+                  key={summary.productId}
+                >
+                  <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <Link
+                        className="block truncate text-sm font-semibold text-accent hover:underline"
+                        href={`/dashboard/products/${summary.productId}`}
+                      >
+                        {summary.name}
+                      </Link>
+                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                        {summary.sku || "No SKU"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">
+                      {summary.count} moves
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                    <SummaryMetric
+                      label="In"
+                      tone="accent"
+                      value={`${decimalText(summary.stockIn)} ${summary.unit}`}
+                    />
+                    <SummaryMetric
+                      label="Out"
+                      tone="danger"
+                      value={`${decimalText(summary.stockOut)} ${summary.unit}`}
+                    />
+                    <SummaryMetric
+                      label="Net"
+                      value={`${decimalText(summary.net)} ${summary.unit}`}
+                    />
+                    <SummaryMetric
+                      label="On hand"
+                      value={`${decimalText(summary.onHand)} ${summary.unit}`}
+                    />
+                    <SummaryMetric label="Moves" value={String(summary.count)} />
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </div>
 
-          <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+          <div className="premium-card max-h-[780px] overflow-hidden rounded-[16px] border p-4">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -657,8 +674,8 @@ export default async function InventoryPage({
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[780px] border-collapse text-left text-sm">
+              <div className="max-h-[640px] overflow-y-auto overflow-x-hidden pr-1">
+                <table className="responsive-data-table w-full border-collapse text-left text-sm">
                   <thead className="text-[11px] text-[#94a3b8]">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Product</th>
@@ -679,7 +696,7 @@ export default async function InventoryPage({
                         className="transition hover:bg-[#635bff]/[0.04]"
                         key={movement.id}
                       >
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Product">
                           <p className="font-semibold">
                             {movement.product.name}
                           </p>
@@ -687,7 +704,7 @@ export default async function InventoryPage({
                             {movement.product.sku || "No SKU"}
                           </p>
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Type">
                           <MovementBadge type={movement.type} />
                           {movement.notes ? (
                             <p className="mt-2 text-muted-foreground">
@@ -695,7 +712,7 @@ export default async function InventoryPage({
                             </p>
                           ) : null}
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Source">
                           {movement.invoice ? (
                             <Link
                               className="font-semibold text-accent hover:underline"
@@ -709,14 +726,14 @@ export default async function InventoryPage({
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-4 align-top text-muted-foreground">
+                        <td className="px-5 py-4 align-top text-muted-foreground" data-label="Date">
                           {dateFormatter(movement.createdAt)}
                         </td>
-                        <td className="px-5 py-4 text-right align-top font-semibold">
+                        <td className="px-5 py-4 text-right align-top font-semibold" data-label="Quantity">
                           {decimalText(movement.quantity)}{" "}
                           {movement.product.unit || "units"}
                         </td>
-                        <td className="px-5 py-4 text-right align-top">
+                        <td className="px-5 py-4 text-right align-top" data-label="Unit cost">
                           {money.format(Number(movement.unitCost))}
                         </td>
                       </tr>

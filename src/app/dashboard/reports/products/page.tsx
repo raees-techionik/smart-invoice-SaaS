@@ -226,8 +226,8 @@ export default async function ProductProfitabilityPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Product</th>
@@ -245,41 +245,41 @@ export default async function ProductProfitabilityPage({
               <tbody className="divide-y divide-border">
                 {report.rows.map((row) => (
                   <tr className="transition hover:bg-[#e6f1fb]/40" key={row.productId ?? row.itemName}>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" data-label="Product">
                       <p className="font-semibold">{row.itemName}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {row.category || "Uncategorized"} / {row.unit || "unit"}
                       </p>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">
+                    <td className="px-5 py-4 text-muted-foreground" data-label="SKU">
                       {row.sku || "-"}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Sold">
                       {quantityFormatter(row.quantitySold)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Refunded">
                       {quantityFormatter(row.quantityRefunded)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net qty">
                       {quantityFormatter(row.netQuantity)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net revenue">
                       {money.format(row.netRevenue)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Cost">
                       {money.format(row.netCost)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Profit">
                       {money.format(row.profit)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Margin">
                       <span
                         className={`inline-flex rounded-[5px] px-2 py-0.5 text-[9.5px] font-medium ${marginTone(row.margin)}`}
                       >
                         {row.margin.toFixed(2)}%
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right text-muted-foreground">
+                    <td className="px-5 py-4 text-right text-muted-foreground" data-label="Stock">
                       {row.stockQuantity === null
                         ? "-"
                         : quantityFormatter(row.stockQuantity)}

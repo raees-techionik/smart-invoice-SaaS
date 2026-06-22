@@ -4,6 +4,8 @@ import { ImportUploadForm } from "@/app/_frontend/components/dashboard/import-up
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { importTypes, readableImportType } from "@/app/_backend/lib/imports";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 function dateFormatter(date: Date) {
   return new Intl.DateTimeFormat("en", {
@@ -68,7 +70,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
@@ -86,7 +88,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">SC</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="scan" /></div>
       </div>
     </div>
   );
@@ -199,7 +201,7 @@ export default async function ImportsPage() {
         />
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.82fr_1.18fr]">
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.82fr_1.18fr]">
         <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
@@ -226,7 +228,7 @@ export default async function ImportsPage() {
           </div>
         </div>
 
-        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+        <div className="premium-card max-h-[780px] overflow-hidden rounded-[16px] border p-4">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -249,8 +251,8 @@ export default async function ImportsPage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+            <div className="max-h-[640px] overflow-y-auto overflow-x-hidden pr-1">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Job</th>
@@ -267,7 +269,7 @@ export default async function ImportsPage() {
                       className="transition hover:bg-[#635bff]/[0.04]"
                       key={job.id}
                     >
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Job">
                         <Link
                           className="font-semibold text-accent hover:underline"
                           href={`/dashboard/imports/${job.id}`}
@@ -279,13 +281,13 @@ export default async function ImportsPage() {
                           errors
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top capitalize">
+                      <td className="px-5 py-4 align-top capitalize" data-label="Target">
                         {readableImportType(job.importType)}
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Status">
                         <StatusBadge status={job.status} />
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Progress">
                         <p className="font-semibold">
                           {job.status.startsWith("imported") ||
                           job.status === "failed"
@@ -299,10 +301,10 @@ export default async function ImportsPage() {
                             : `${job.failedRows} still needs review`}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Owner">
                         {job.createdBy?.name ?? "System"}
                       </td>
-                      <td className="px-5 py-4 align-top text-muted-foreground">
+                      <td className="px-5 py-4 align-top text-muted-foreground" data-label="Created">
                         {dateFormatter(job.createdAt)}
                       </td>
                     </tr>

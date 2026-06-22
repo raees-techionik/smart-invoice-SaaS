@@ -7,10 +7,6 @@ import { redirect } from "next/navigation";
 import { formValue, normalizeEmail } from "@/app/_backend/lib/auth/forms";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import {
-  deliverInvoiceEmail,
-  validateEmailDeliverySettings,
-} from "@/app/_backend/lib/invoice-delivery";
 import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
 
 export type InvoiceActionState = {
@@ -19,11 +15,6 @@ export type InvoiceActionState = {
 };
 
 export type InvoiceEmailActionState = {
-  error?: string;
-  success?: string;
-};
-
-export type SendInvoiceEmailActionState = {
   error?: string;
   success?: string;
 };
@@ -133,12 +124,6 @@ function emailListValue(value: string) {
 
 function validEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function shortErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : "Email send failed.";
-
-  return message.length > 500 ? `${message.slice(0, 497)}...` : message;
 }
 
 async function nextInvoiceNumber(
@@ -691,116 +676,6 @@ export async function prepareInvoiceEmail(
 
   return {
     success:
-      "Invoice email prepared. SMTP sending will be connected when email settings are configured.",
+      "Invoice email draft prepared. Copy it into your email app and attach the invoice PDF if needed.",
   };
-}
-
-export async function sendPreparedInvoiceEmail(
-  _state: SendInvoiceEmailActionState,
-  formData: FormData,
-): Promise<SendInvoiceEmailActionState> {
-  const user = await requireUser();
-  const emailSendId = formValue(formData, "emailSendId");
-
-  if (!emailSendId) {
-    return { error: "Email send id is required." };
-  }
-
-  const [emailRecord, emailSettings] = await Promise.all([
-    prisma.invoiceEmail.findFirst({
-      include: {
-        invoice: {
-          include: {
-            business: true,
-            customer: true,
-            items: {
-              orderBy: {
-                sortOrder: "asc",
-              },
-            },
-          },
-        },
-      },
-      where: {
-        businessId: user.businessId,
-        id: emailSendId,
-      },
-    }),
-    prisma.businessEmailSetting.findUnique({
-      where: {
-        businessId: user.businessId,
-      },
-    }),
-  ]);
-
-  if (!emailRecord) {
-    return { error: "Prepared invoice email was not found." };
-  }
-
-  if (emailRecord.status === "sent") {
-    return { error: "This invoice email has already been sent." };
-  }
-
-  const settingsError = validateEmailDeliverySettings(emailSettings);
-
-  if (settingsError) {
-    return { error: settingsError };
-  }
-
-  if (!emailSettings) {
-    return { error: "Configure SMTP settings before sending invoices." };
-  }
-
-  await prisma.invoiceEmail.update({
-    data: {
-      errorMessage: null,
-      status: "sending",
-    },
-    where: {
-      id: emailRecord.id,
-    },
-  });
-
-  try {
-    const result = await deliverInvoiceEmail({
-      currency: user.business.currency,
-      emailRecord,
-      settings: emailSettings,
-    });
-
-    await prisma.invoiceEmail.update({
-      data: {
-        errorMessage: null,
-        providerMessageId: result.messageId,
-        sentAt: new Date(),
-        status: "sent",
-      },
-      where: {
-        id: emailRecord.id,
-      },
-    });
-
-    revalidatePath("/dashboard/invoices");
-    revalidatePath(invoicePath(emailRecord.invoiceId));
-    revalidatePath(`${invoicePath(emailRecord.invoiceId)}/send`);
-
-    return { success: "Invoice email sent with PDF attached." };
-  } catch (error) {
-    const errorMessage = shortErrorMessage(error);
-
-    await prisma.invoiceEmail.update({
-      data: {
-        errorMessage,
-        status: "failed",
-      },
-      where: {
-        id: emailRecord.id,
-      },
-    });
-
-    revalidatePath(invoicePath(emailRecord.invoiceId));
-    revalidatePath(`${invoicePath(emailRecord.invoiceId)}/send`);
-
-    return { error: `Email failed: ${errorMessage}` };
-  }
 }

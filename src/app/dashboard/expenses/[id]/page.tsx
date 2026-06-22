@@ -64,9 +64,9 @@ function DetailRow({
   value: string;
 }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-border pb-3">
+    <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:justify-between sm:gap-4">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-semibold">{value}</dd>
+      <dd className="min-w-0 break-words font-semibold sm:text-right">{value}</dd>
     </div>
   );
 }
@@ -98,13 +98,13 @@ export default async function ExpenseDetailPage({
   }
 
   return (
-    <div className="grid gap-3.5">
-      <header className="flex flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+    <div className="grid min-w-0 gap-3.5">
+      <header className="flex min-w-0 flex-col gap-4 rounded-[14px] border border-border bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#185fa5]">
             Expense
           </p>
-          <h2 className="mt-2 text-[28px] font-semibold leading-none tracking-tight">
+          <h2 className="mt-2 break-words text-[28px] font-semibold leading-none tracking-tight">
             {expense.category}
           </h2>
           <p className="mt-2 max-w-2xl text-xs leading-5 text-muted-foreground">
@@ -112,9 +112,9 @@ export default async function ExpenseDetailPage({
             should no longer count toward operating totals.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
           <Link
-            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+            className="inline-flex min-h-[34px] max-w-full items-center justify-center rounded-lg border border-border bg-white px-3 py-2 text-center text-[11.5px] font-medium leading-tight transition hover:bg-[#e6f1fb]"
             href="/dashboard/expenses"
           >
             Back to expenses
@@ -123,7 +123,7 @@ export default async function ExpenseDetailPage({
             <form action={archiveExpense}>
               <input name="expenseId" type="hidden" value={expense.id} />
               <button
-                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-[#e24b4a]/30 bg-white px-3 text-[11.5px] font-medium text-[#a32d2d] transition hover:bg-[#fcebeb]"
+                className="inline-flex min-h-[34px] max-w-full items-center justify-center rounded-lg border border-[#e24b4a]/30 bg-white px-3 py-2 text-center text-[11.5px] font-medium leading-tight text-[#a32d2d] transition hover:bg-[#fcebeb]"
                 type="submit"
               >
                 Archive expense
@@ -133,8 +133,8 @@ export default async function ExpenseDetailPage({
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-[14px] border border-border bg-white p-[15px]">
+      <section className="grid min-w-0 gap-4 md:grid-cols-4">
+        <div className="min-w-0 rounded-[14px] border border-border bg-white p-[15px]">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Status
           </p>
@@ -142,34 +142,34 @@ export default async function ExpenseDetailPage({
             <StatusBadge status={expense.status} />
           </div>
         </div>
-        <div className="rounded-[14px] border border-border bg-white p-[15px]">
+        <div className="min-w-0 rounded-[14px] border border-border bg-white p-[15px]">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Amount
           </p>
-          <p className="mt-3 text-2xl font-semibold">
+          <p className="mt-3 break-words text-xl font-semibold sm:text-2xl">
             {money.format(Number(expense.amount))}
           </p>
         </div>
-        <div className="rounded-[14px] border border-border bg-white p-[15px]">
+        <div className="min-w-0 rounded-[14px] border border-border bg-white p-[15px]">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Date
           </p>
-          <p className="mt-3 text-2xl font-semibold">
+          <p className="mt-3 break-words text-xl font-semibold sm:text-2xl">
             {dateFormatter(expense.date)}
           </p>
         </div>
-        <div className="rounded-[14px] border border-border bg-white p-[15px]">
+        <div className="min-w-0 rounded-[14px] border border-border bg-white p-[15px]">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Method
           </p>
-          <p className="mt-3 text-2xl font-semibold capitalize">
+          <p className="mt-3 break-words text-xl font-semibold capitalize sm:text-2xl">
             {(expense.paymentMethod || "not set").replaceAll("_", " ")}
           </p>
         </div>
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-[14px] border border-border bg-white p-4">
+      <section className="grid min-w-0 gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="min-w-0 rounded-[14px] border border-border bg-white p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
               Edit expense
@@ -191,8 +191,8 @@ export default async function ExpenseDetailPage({
           />
         </div>
 
-        <div className="grid gap-3.5 content-start">
-          <div className="rounded-[14px] border border-border bg-white p-4">
+        <div className="grid min-w-0 content-start gap-3.5">
+          <div className="min-w-0 rounded-[14px] border border-border bg-white p-4">
             <p className="text-sm font-medium text-muted-foreground">
               Expense metadata
             </p>
@@ -209,16 +209,16 @@ export default async function ExpenseDetailPage({
                 label="Recorder email"
                 value={expense.createdBy?.email ?? "Not available"}
               />
-              <div className="flex justify-between gap-4">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-4">
                 <dt className="text-muted-foreground">Attachment</dt>
-                <dd className="text-right font-semibold">
+                <dd className="min-w-0 break-words font-semibold sm:text-right">
                   {expense.attachmentPath ? "Receipt attached" : "Not attached"}
                 </dd>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-[14px] border border-border bg-white p-4">
+          <div className="min-w-0 rounded-[14px] border border-border bg-white p-4">
             <p className="text-sm font-medium text-muted-foreground">
               Receipt attachment
             </p>
@@ -233,7 +233,7 @@ export default async function ExpenseDetailPage({
                   </p>
                 </div>
                 <Link
-                  className="inline-flex h-[34px] w-fit items-center justify-center rounded-lg bg-accent px-3 text-[11.5px] font-medium text-white transition hover:bg-[#2d7bc9]"
+                  className="inline-flex min-h-[34px] w-fit max-w-full items-center justify-center rounded-lg bg-accent px-3 py-2 text-center text-[11.5px] font-medium leading-tight text-white transition hover:bg-[#2d7bc9]"
                   href={`/dashboard/expenses/${expense.id}/receipt`}
                   target="_blank"
                 >

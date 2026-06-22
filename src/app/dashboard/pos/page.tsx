@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PosBillingForm } from "@/app/_frontend/components/dashboard/pos-billing-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 function decimalInputValue(value: unknown) {
   return Number(value).toFixed(2);
@@ -70,7 +72,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
@@ -88,7 +90,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">PS</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="pos" /></div>
       </div>
     </div>
   );
@@ -213,7 +215,7 @@ export default async function PosPage() {
         </div>
       </header>
 
-      <section className="relative z-[1] grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-3">
         <MetricCard
           helper="Finalized POS invoices created today."
           label="Today's POS sales"
@@ -232,15 +234,11 @@ export default async function PosPage() {
           tone="amber"
           value={String(todayPosCount)}
         />
-        <MetricCard
-          helper="Average finalized POS bill value."
-          label="Average bill"
-          tone="red"
-          value={money.format(averageBill)}
-        />
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.9fr_1.1fr]">
+      <PosBillingForm currency={user.business.currency} products={formProducts} />
+
+      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="premium-card rounded-[16px] border p-4">
           <div className="flex items-center justify-between gap-4 border-b border-border p-5">
             <div>
@@ -293,7 +291,13 @@ export default async function PosPage() {
           )}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+        <div className="grid gap-4 md:grid-cols-2">
+          <MetricCard
+            helper="Average finalized POS bill value."
+            label="Average bill"
+            tone="red"
+            value={money.format(averageBill)}
+          />
           <MetricCard
             helper="Active catalog items available for quick search."
             label="Active items"
@@ -314,8 +318,6 @@ export default async function PosPage() {
           />
         </div>
       </section>
-
-      <PosBillingForm currency={user.business.currency} products={formProducts} />
 
       {serviceItems.length > 0 ? (
         <p className="relative z-[1] text-sm text-muted-foreground">

@@ -4,12 +4,11 @@ import {
 } from "@/app/dashboard/settings/actions";
 import { AssetUploadForm } from "@/app/_frontend/components/settings/asset-upload-form";
 import { BusinessSettingsForm } from "@/app/_frontend/components/settings/business-settings-form";
-import { EmailSettingsForm } from "@/app/_frontend/components/settings/email-settings-form";
-import { EmailTestForm } from "@/app/_frontend/components/settings/email-test-form";
 import { TeamUserForm } from "@/app/_frontend/components/settings/team-user-form";
 import { canManageTeam, requireSettingsManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import { hasCompleteEmailSettings } from "@/app/_backend/lib/email-settings";
+import { AppIcon } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 function dateFormatter(date: Date) {
   return new Intl.DateTimeFormat("en", {
@@ -43,7 +42,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">SE</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="gear" /></div>
       </div>
     </div>
   );
@@ -53,29 +52,21 @@ export default async function SettingsPage() {
   const user = await requireSettingsManager();
   const canEditTeam = canManageTeam(user.role);
 
-  const [teamUsers, emailSetting] = await Promise.all([
-    canEditTeam
-      ? prisma.user.findMany({
-          orderBy: [
-            {
-              role: "asc",
-            },
-            {
-              createdAt: "asc",
-            },
-          ],
-          where: {
-            businessId: user.businessId,
+  const teamUsers = canEditTeam
+    ? await prisma.user.findMany({
+        orderBy: [
+          {
+            role: "asc",
           },
-        })
-      : Promise.resolve([]),
-    prisma.businessEmailSetting.findUnique({
-      where: {
-        businessId: user.businessId,
-      },
-    }),
-  ]);
-  const canTestEmail = hasCompleteEmailSettings(emailSetting);
+          {
+            createdAt: "asc",
+          },
+        ],
+        where: {
+          businessId: user.businessId,
+        },
+      })
+    : [];
 
   return (
     <div className="relative grid gap-3.5">
@@ -101,34 +92,50 @@ export default async function SettingsPage() {
         </div>
       </header>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="premium-card rounded-[16px] border p-5">
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
-              Business profile
-            </p>
-            <h3 className="mt-1 text-[13px] font-medium">
-              Invoice and company defaults
-            </h3>
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid gap-3.5">
+          <div className="premium-card rounded-[16px] border p-5">
+            <div className="mb-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
+                Business profile
+              </p>
+              <h3 className="mt-1 text-[13px] font-medium">
+                Invoice and company defaults
+              </h3>
+            </div>
+            <BusinessSettingsForm
+              defaults={{
+                address: user.business.address ?? "",
+                category: user.business.category ?? "",
+                currency: user.business.currency,
+                defaultNotes: user.business.defaultNotes ?? "",
+                defaultTerms: user.business.defaultTerms ?? "",
+                email: user.business.email ?? "",
+                invoicePrefix: user.business.invoicePrefix,
+                name: user.business.name,
+                ownerName: user.business.ownerName ?? user.name,
+                phone: user.business.phone ?? "",
+                taxNumber: user.business.taxNumber ?? "",
+              }}
+            />
           </div>
-          <BusinessSettingsForm
-            defaults={{
-              address: user.business.address ?? "",
-              category: user.business.category ?? "",
-              currency: user.business.currency,
-              defaultNotes: user.business.defaultNotes ?? "",
-              defaultTerms: user.business.defaultTerms ?? "",
-              email: user.business.email ?? "",
-              invoicePrefix: user.business.invoicePrefix,
-              name: user.business.name,
-              ownerName: user.business.ownerName ?? user.name,
-              phone: user.business.phone ?? "",
-              taxNumber: user.business.taxNumber ?? "",
-            }}
-          />
+
+          {canEditTeam ? (
+          <div className="premium-card rounded-[16px] border p-5">
+            <div className="mb-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00a884]">
+                New user
+              </p>
+              <h3 className="mt-1 text-[13px] font-medium">
+                Add admin or staff access
+              </h3>
+            </div>
+            <TeamUserForm />
+          </div>
+          ) : null}
         </div>
 
-        <div className="grid gap-3.5 content-start">
+        <div className="grid gap-3.5">
           <div className="premium-card rounded-[16px] border p-5">
             <div className="mb-5">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00a884]">
@@ -154,56 +161,8 @@ export default async function SettingsPage() {
               <AssetPath label="Stamp" value={user.business.stampPath} />
             </dl>
           </div>
-        </div>
-      </section>
 
-      <section className="premium-card relative z-[1] rounded-[16px] border p-5">
-        <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#635bff]">
-            Email delivery
-          </p>
-          <h3 className="mt-1 text-[13px] font-medium">
-            SMTP settings for sending invoices
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            These settings are used when prepared invoice emails are sent. The
-            password is encrypted and never shown again after saving.
-          </p>
-        </div>
-        <EmailSettingsForm
-          defaults={{
-            fromEmail: emailSetting?.fromEmail ?? user.business.email ?? "",
-            fromName: emailSetting?.fromName ?? user.business.name,
-            hasPassword: Boolean(emailSetting?.smtpPasswordEncrypted),
-            replyToEmail: emailSetting?.replyToEmail ?? "",
-            smtpHost: emailSetting?.smtpHost ?? "",
-            smtpPort: String(emailSetting?.smtpPort ?? 587),
-            smtpSecure: emailSetting?.smtpSecure ?? false,
-            smtpUsername: emailSetting?.smtpUsername ?? "",
-          }}
-        />
-        <div className="mt-5">
-          <EmailTestForm
-            canTest={canTestEmail}
-            defaultRecipientEmail={user.email}
-          />
-        </div>
-      </section>
-
-      {canEditTeam ? (
-        <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.8fr_1.2fr]">
-          <div className="premium-card rounded-[16px] border p-5">
-            <div className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00a884]">
-                New user
-              </p>
-              <h3 className="mt-1 text-[13px] font-medium">
-                Add admin or staff access
-              </h3>
-            </div>
-            <TeamUserForm />
-          </div>
-
+          {canEditTeam ? (
           <div className="premium-card overflow-hidden rounded-[16px] border">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
@@ -219,33 +178,32 @@ export default async function SettingsPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-                <thead className="bg-white/45 text-[11px] uppercase tracking-[0.08em] text-[#94a3b8]">
-                  <tr>
-                    <th className="px-5 py-3 font-semibold">User</th>
-                    <th className="px-5 py-3 font-semibold">Role</th>
-                    <th className="px-5 py-3 font-semibold">Status</th>
-                    <th className="px-5 py-3 font-semibold">Created</th>
-                    <th className="px-5 py-3 font-semibold">Save</th>
-                    <th className="px-5 py-3 font-semibold">Password reset</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {teamUsers.map((teamUser) => {
-                    const isOwner = teamUser.role === "owner";
+            <div className="grid gap-3 p-5">
+              {teamUsers.map((teamUser) => {
+                const isOwner = teamUser.role === "owner";
 
-                    return (
-                      <tr className="transition hover:bg-white/45" key={teamUser.id}>
-                        <td className="px-5 py-4 align-top">
-                          <p className="font-semibold">{teamUser.name}</p>
-                          <p className="mt-1 text-muted-foreground">
-                            {teamUser.email}
+                return (
+                  <article
+                    className="rounded-[14px] border border-white/70 bg-white/45 p-3.5 transition hover:border-[#635bff]/25 hover:bg-white/65"
+                    key={teamUser.id}
+                  >
+                    <div className="flex flex-col gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">
+                          {teamUser.name}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                          {teamUser.email}
+                        </p>
+                      </div>
+
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <div className="rounded-[10px] border border-white/70 bg-white/55 px-3 py-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#94a3b8]">
+                            Role
                           </p>
-                        </td>
-                        <td className="px-5 py-4 align-top capitalize">
                           {isOwner ? (
-                            <span className="rounded-sm bg-muted px-2 py-1 text-xs font-semibold text-muted-foreground">
+                            <span className="mt-2 inline-flex rounded-sm bg-muted px-2 py-1 text-xs font-semibold text-muted-foreground">
                               Owner
                             </span>
                           ) : (
@@ -256,7 +214,7 @@ export default async function SettingsPage() {
                                 value={teamUser.id}
                               />
                               <select
-                                className="h-10 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
+                                className="mt-2 h-9 w-full rounded-lg border border-white/80 bg-white/70 px-2.5 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
                                 defaultValue={teamUser.role}
                                 name="role"
                               >
@@ -265,15 +223,19 @@ export default async function SettingsPage() {
                               </select>
                             </form>
                           )}
-                        </td>
-                        <td className="px-5 py-4 align-top">
+                        </div>
+
+                        <div className="rounded-[10px] border border-white/70 bg-white/55 px-3 py-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#94a3b8]">
+                            Status
+                          </p>
                           {isOwner ? (
-                            <span className="rounded-sm bg-muted px-2 py-1 text-xs font-semibold capitalize text-muted-foreground">
+                            <span className="mt-2 inline-flex rounded-sm bg-muted px-2 py-1 text-xs font-semibold capitalize text-muted-foreground">
                               {teamUser.status}
                             </span>
                           ) : (
                             <select
-                              className="h-10 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
+                              className="mt-2 h-9 w-full rounded-lg border border-white/80 bg-white/70 px-2.5 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
                               defaultValue={teamUser.status}
                               form={teamUser.id}
                               name="status"
@@ -282,67 +244,72 @@ export default async function SettingsPage() {
                               <option value="inactive">Inactive</option>
                             </select>
                           )}
-                        </td>
-                        <td className="px-5 py-4 align-top text-muted-foreground">
-                          {dateFormatter(teamUser.createdAt)}
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          {isOwner ? (
-                            <span className="text-sm text-muted-foreground">
-                              Protected
-                            </span>
-                          ) : (
+                        </div>
+
+                        <div className="rounded-[10px] border border-white/70 bg-white/55 px-3 py-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#94a3b8]">
+                            Created
+                          </p>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {dateFormatter(teamUser.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 sm:grid-cols-[auto_1fr] sm:items-center">
+                        {isOwner ? (
+                          <span className="text-sm text-muted-foreground">
+                            Account protected
+                          </span>
+                        ) : (
+                          <button
+                            className="premium-button h-9 rounded-lg px-3 text-sm font-semibold text-white transition"
+                            form={teamUser.id}
+                            type="submit"
+                          >
+                            Save changes
+                          </button>
+                        )}
+
+                        {isOwner ? (
+                          <span className="text-sm text-muted-foreground sm:text-right">
+                            Password reset protected
+                          </span>
+                        ) : (
+                          <form
+                            action={resetTeamUserPassword}
+                            className="grid gap-2 sm:grid-cols-[1fr_auto]"
+                          >
+                            <input
+                              name="userId"
+                              type="hidden"
+                              value={teamUser.id}
+                            />
+                            <input
+                              className="h-9 min-w-0 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
+                              minLength={8}
+                              name="password"
+                              placeholder="New password"
+                              required
+                              type="password"
+                            />
                             <button
-                              className="premium-button h-10 rounded-lg px-3 text-sm font-semibold text-white transition"
-                              form={teamUser.id}
+                              className="premium-soft-button h-9 rounded-lg border px-3 text-sm font-semibold transition hover:border-[#635bff]/30 hover:bg-white"
                               type="submit"
                             >
-                              Save
+                              Reset
                             </button>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          {isOwner ? (
-                            <span className="text-sm text-muted-foreground">
-                              Protected
-                            </span>
-                          ) : (
-                            <form
-                              action={resetTeamUserPassword}
-                              className="flex gap-2"
-                            >
-                              <input
-                                name="userId"
-                                type="hidden"
-                                value={teamUser.id}
-                              />
-                              <input
-                                className="h-10 w-40 rounded-lg border border-white/80 bg-white/70 px-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition focus:border-[#635bff]/40 focus:ring-2 focus:ring-[#635bff]/10"
-                                minLength={8}
-                                name="password"
-                                placeholder="New password"
-                                required
-                                type="password"
-                              />
-                              <button
-                                className="premium-soft-button h-10 rounded-lg border px-3 text-sm font-semibold transition hover:border-[#635bff]/30 hover:bg-white"
-                                type="submit"
-                              >
-                                Reset
-                              </button>
-                            </form>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </form>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
-        </section>
-      ) : (
-        <section className="premium-card relative z-[1] rounded-[16px] border p-5">
+          ) : (
+        <div className="premium-card rounded-[16px] border p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#f59e0b]">
             Team management
           </p>
@@ -351,8 +318,10 @@ export default async function SettingsPage() {
             Admins can update business settings and upload invoice assets.
             Creating users or changing roles is reserved for the owner account.
           </p>
-        </section>
-      )}
+        </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

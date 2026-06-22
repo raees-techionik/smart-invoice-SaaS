@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { requireReportViewer } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type ReportsPageProps = {
   searchParams: Promise<{
@@ -97,7 +99,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
@@ -119,7 +121,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">RP</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="chart" /></div>
       </div>
     </div>
   );
@@ -365,7 +367,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
       </section>
 
-      <section className="relative z-[1] grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <section className="relative z-[1] grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <MetricCard
           helper={`${invoiceCount} finalized invoices`}
           label="Gross revenue"
@@ -515,8 +517,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+            <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Invoice</th>
@@ -533,7 +535,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                       className="transition hover:bg-[#635bff]/[0.04]"
                       key={invoice.id}
                     >
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4" data-label="Invoice">
                         <Link
                           className="font-semibold text-accent hover:underline"
                           href={`/dashboard/invoices/${invoice.id}`}
@@ -541,13 +543,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                           {invoice.invoiceNumber}
                         </Link>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4" data-label="Customer">
                         {invoice.customer?.name ?? "No customer"}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">
+                      <td className="px-5 py-4 text-muted-foreground" data-label="Date">
                         {dateFormatter(invoice.invoiceDate)}
                       </td>
-                      <td className="px-5 py-4 text-right font-semibold">
+                      <td className="px-5 py-4 text-right font-semibold" data-label="Revenue">
                         {money.format(Number(invoice.grandTotal))}
                       </td>
                     </tr>
@@ -575,8 +577,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+            <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Category</th>
@@ -593,7 +595,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                       className="transition hover:bg-[#635bff]/[0.04]"
                       key={expense.id}
                     >
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4" data-label="Category">
                         <Link
                           className="font-semibold text-accent hover:underline"
                           href={`/dashboard/expenses/${expense.id}`}
@@ -601,13 +603,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                           {expense.category}
                         </Link>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4" data-label="Vendor">
                         {expense.vendor || "No vendor"}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">
+                      <td className="px-5 py-4 text-muted-foreground" data-label="Date">
                         {dateFormatter(expense.date)}
                       </td>
-                      <td className="px-5 py-4 text-right font-semibold">
+                      <td className="px-5 py-4 text-right font-semibold" data-label="Amount">
                         {money.format(Number(expense.amount))}
                       </td>
                     </tr>

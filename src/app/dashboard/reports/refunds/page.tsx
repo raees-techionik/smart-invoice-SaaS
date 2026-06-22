@@ -428,8 +428,8 @@ export default async function RefundsReportPage({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+            <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Item</th>
@@ -453,22 +453,22 @@ export default async function RefundsReportPage({
                       className="transition hover:bg-[#e6f1fb]/40"
                       key={`${product.name}-${product.sku}`}
                     >
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Item">
                         <p className="font-semibold">{product.name}</p>
                         <p className="mt-1 text-muted-foreground">
                           {product.sku || "No SKU"}
                         </p>
                       </td>
-                      <td className="px-5 py-4 text-right align-top">
+                      <td className="px-5 py-4 text-right align-top" data-label="Quantity">
                         {decimalText(product.quantity)} {product.unit}
                       </td>
-                      <td className="px-5 py-4 text-right align-top">
+                      <td className="px-5 py-4 text-right align-top" data-label="Restocked">
                         {decimalText(product.restocked)} {product.unit}
                       </td>
-                      <td className="px-5 py-4 text-right align-top">
+                      <td className="px-5 py-4 text-right align-top" data-label="Refunds">
                         {product.count}
                       </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold">
+                      <td className="px-5 py-4 text-right align-top font-semibold" data-label="Amount">
                         {money.format(product.amount)}
                       </td>
                     </tr>
@@ -502,8 +502,8 @@ export default async function RefundsReportPage({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+            <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Customer</th>
@@ -521,7 +521,7 @@ export default async function RefundsReportPage({
                       className="transition hover:bg-[#e6f1fb]/40"
                       key={customer.customerId || customer.name}
                     >
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Customer">
                         {customer.customerId ? (
                           <Link
                             className="font-semibold text-accent hover:underline"
@@ -539,10 +539,10 @@ export default async function RefundsReportPage({
                             "No contact details"}
                         </p>
                       </td>
-                      <td className="px-5 py-4 text-right align-top">
+                      <td className="px-5 py-4 text-right align-top" data-label="Refunds">
                         {customer.count}
                       </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold">
+                      <td className="px-5 py-4 text-right align-top font-semibold" data-label="Amount">
                         {money.format(customer.amount)}
                       </td>
                     </tr>
@@ -572,8 +572,8 @@ export default async function RefundsReportPage({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[780px] border-collapse text-left text-sm">
+            <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Refund</th>
@@ -591,7 +591,7 @@ export default async function RefundsReportPage({
                       className="transition hover:bg-[#e6f1fb]/40"
                       key={refund.id}
                     >
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Refund">
                         <p className="font-semibold">{refund.refundNumber}</p>
                         <p className="mt-1 text-muted-foreground">
                           {dateFormatter(refund.refundDate)}
@@ -600,7 +600,7 @@ export default async function RefundsReportPage({
                           {refund.reason || refund.notes || refund.status}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Invoice">
                         <Link
                           className="font-semibold text-accent hover:underline"
                           href={`/dashboard/invoices/${refund.invoice.id}`}
@@ -611,13 +611,13 @@ export default async function RefundsReportPage({
                           {dateFormatter(refund.invoice.invoiceDate)}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Customer">
                         {refund.customer?.name ?? "No customer"}
                       </td>
-                      <td className="px-5 py-4 align-top capitalize">
+                      <td className="px-5 py-4 align-top capitalize" data-label="Method">
                         {methodLabel(refund.refundMethod)}
                       </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold">
+                      <td className="px-5 py-4 text-right align-top font-semibold" data-label="Amount">
                         {money.format(Number(refund.amount))}
                       </td>
                     </tr>

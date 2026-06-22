@@ -33,7 +33,6 @@ model Business {
   invoiceTemplates      InvoiceTemplate[]
   invoices              Invoice[]
   invoiceEmails         InvoiceEmail[]
-  emailSetting          BusinessEmailSetting?
   communicationNotes    CommunicationNote[]
   refunds               Refund[]
   payments              Payment[]
@@ -43,24 +42,6 @@ model Business {
   importedDocuments     ImportedDocument[]
   documentFieldMappings DocumentFieldMapping[]
   exportAuditLogs       ExportAuditLog[]
-}
-
-model BusinessEmailSetting {
-  id                    String   @id @default(cuid())
-  businessId            String   @unique
-  fromName              String
-  fromEmail             String
-  replyToEmail          String?
-  smtpHost              String
-  smtpPort              Int      @default(587)
-  smtpUsername          String?
-  smtpPasswordEncrypted String?
-  smtpSecure            Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  business              Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-
-  @@index([businessId])
 }
 
 model User {

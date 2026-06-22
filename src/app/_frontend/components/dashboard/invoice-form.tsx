@@ -292,7 +292,7 @@ export function InvoiceForm({
   const canCreateInvoice = customers.length > 0 && products.length > 0;
 
   return (
-    <form action={action} className="grid gap-3.5">
+    <form action={action} className="grid min-w-0 gap-3.5">
       {invoiceId ? (
         <input name="invoiceId" type="hidden" value={invoiceId} />
       ) : null}
@@ -457,7 +457,7 @@ export function InvoiceForm({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-[12px] border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+      <div className="min-w-0 overflow-hidden rounded-[12px] border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
         <div className="flex flex-col gap-2 border-b border-border bg-white/55 p-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[11px] text-[#94a3b8]">
@@ -474,7 +474,7 @@ export function InvoiceForm({
             Add line
           </button>
         </div>
-        <div className="grid gap-2 p-2">
+        <div className="grid min-w-0 gap-2 p-2">
           {lines.map((line, index) => {
             const product = productsById.get(line.productId);
             const quantity = numericValue(line.quantity);
@@ -502,7 +502,7 @@ export function InvoiceForm({
 
             return (
               <div
-                className="grid gap-2 rounded-[10px] border border-white/70 bg-white/80 p-2 shadow-[0_10px_22px_rgba(30,45,75,0.06)]"
+                className="grid min-w-0 gap-2 rounded-[10px] border border-white/70 bg-white/80 p-2 shadow-[0_10px_22px_rgba(30,45,75,0.06)]"
                 key={line.id}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -516,11 +516,11 @@ export function InvoiceForm({
                     Remove
                   </button>
                 </div>
-                <div className="grid items-start gap-2 xl:grid-cols-[minmax(240px,1.55fr)_90px_130px_130px_90px_104px]">
-                  <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                <div className="grid min-w-0 items-start gap-2 xl:grid-cols-[minmax(240px,1.55fr)_90px_130px_130px_90px_104px]">
+                  <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Item
                     <select
-                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] w-full min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       disabled={!canCreateInvoice}
                       name="productId"
                       onChange={(event) => {
@@ -567,10 +567,10 @@ export function InvoiceForm({
                       </span>
                     ) : null}
                   </label>
-                  <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                  <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Qty
                     <input
-                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] w-full min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="1"
                       name="quantity"
                       onChange={(event) =>
@@ -582,10 +582,10 @@ export function InvoiceForm({
                       value={line.quantity}
                     />
                   </label>
-                  <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                  <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Unit price
                     <input
-                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] w-full min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="unitPrice"
                       onChange={(event) =>
@@ -596,10 +596,10 @@ export function InvoiceForm({
                       value={line.unitPrice}
                     />
                   </label>
-                  <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                  <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Discount
                     <input
-                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] w-full min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="discount"
                       onChange={(event) =>
@@ -610,10 +610,10 @@ export function InvoiceForm({
                       value={line.discount}
                     />
                   </label>
-                  <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                  <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Tax %
                     <input
-                      className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
+                      className="h-[34px] w-full min-w-0 rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                       min="0"
                       name="taxRate"
                       onChange={(event) =>

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PaymentForm } from "@/app/_frontend/components/dashboard/payment-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 function currencyFormatter(currency: string) {
   return new Intl.NumberFormat("en-PK", {
@@ -71,7 +73,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
@@ -87,7 +89,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">PY</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="credit-card" /></div>
       </div>
     </div>
   );
@@ -227,7 +229,7 @@ export default async function PaymentsPage() {
         />
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.8fr_1.2fr]">
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="premium-card rounded-[16px] border p-5">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
@@ -240,7 +242,7 @@ export default async function PaymentsPage() {
           <PaymentForm invoiceOptions={invoiceOptions} />
         </div>
 
-        <div className="premium-card overflow-hidden rounded-[16px] border">
+        <div className="premium-card max-h-[760px] overflow-hidden rounded-[16px] border">
           <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -263,8 +265,8 @@ export default async function PaymentsPage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[840px] border-collapse text-left text-sm">
+            <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Payment</th>
@@ -283,7 +285,7 @@ export default async function PaymentsPage() {
                       className="transition hover:bg-[#635bff]/[0.04]"
                       key={payment.id}
                     >
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Payment">
                         <p className="font-semibold">
                           {dateFormatter(payment.paymentDate)}
                         </p>
@@ -291,7 +293,7 @@ export default async function PaymentsPage() {
                           {payment.notes || "No notes"}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Invoice">
                         <Link
                           className="font-semibold text-accent hover:underline"
                           href={`/dashboard/invoices/${payment.invoiceId}`}
@@ -303,16 +305,16 @@ export default async function PaymentsPage() {
                           {money.format(Number(payment.invoice.balanceAmount))}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Customer">
                         {payment.invoice.customer?.name ?? "No customer"}
                       </td>
-                      <td className="px-5 py-4 align-top capitalize">
+                      <td className="px-5 py-4 align-top capitalize" data-label="Method">
                         {payment.paymentMethod.replaceAll("_", " ")}
                       </td>
-                      <td className="px-5 py-4 align-top">
+                      <td className="px-5 py-4 align-top" data-label="Invoice status">
                         <StatusBadge status={paymentStatus(payment.invoice)} />
                       </td>
-                      <td className="px-5 py-4 text-right align-top font-semibold">
+                      <td className="px-5 py-4 text-right align-top font-semibold" data-label="Amount">
                         {money.format(Number(payment.amount))}
                       </td>
                     </tr>

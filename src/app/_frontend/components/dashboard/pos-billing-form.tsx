@@ -207,9 +207,9 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
   return (
     <form
       action={action}
-      className="relative z-[1] grid gap-3.5 xl:grid-cols-[1fr_420px]"
+      className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[1fr_420px]"
     >
-      <section className="premium-card rounded-[16px] border p-4">
+      <section className="premium-card overflow-hidden rounded-[16px] border p-4">
         <div className="flex flex-col gap-4 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
@@ -246,7 +246,7 @@ export function PosBillingForm({ currency, products }: PosBillingFormProps) {
             </div>
           </div>
         ) : (
-          <div className="grid gap-3 p-5 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid max-h-[640px] gap-3 overflow-y-auto p-5 pr-4 sm:grid-cols-2 2xl:grid-cols-3">
             {filteredProducts.map((product) => {
               const stockQuantity = numericValue(product.stockQuantity);
               const isStockItem = product.type === "product";

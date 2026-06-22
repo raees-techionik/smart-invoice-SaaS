@@ -16,9 +16,6 @@ import {
   type UserRole,
 } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import { decryptSecret, encryptSecret } from "@/app/_backend/lib/email-settings";
-import { validateEmailDeliverySettings } from "@/app/_backend/lib/invoice-delivery";
-import { sendSmtpMail } from "@/app/_backend/lib/smtp-client";
 
 export type SettingsActionState = {
   error?: string;
@@ -67,26 +64,6 @@ function parseRole(value: string): UserRole | null {
 
 function parseStatus(value: string) {
   return value === "inactive" ? "inactive" : "active";
-}
-
-function checkedValue(formData: FormData, key: string) {
-  return formData.get(key) === "on";
-}
-
-function validEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function parseSmtpPort(value: string) {
-  const port = Number(value);
-
-  return Number.isInteger(port) && port > 0 && port <= 65535 ? port : null;
-}
-
-function shortErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : "Email test failed.";
-
-  return message.length > 500 ? `${message.slice(0, 497)}...` : message;
 }
 
 async function saveUploadFile(file: File, target: keyof typeof uploadConfig) {
@@ -211,141 +188,6 @@ export async function uploadBusinessAsset(
   revalidatePath("/dashboard/settings");
 
   return { success: `${assetType} uploaded.` };
-}
-
-export async function updateBusinessEmailSettings(
-  _state: SettingsActionState,
-  formData: FormData,
-): Promise<SettingsActionState> {
-  const user = await requireSettingsManager();
-  const fromName = formValue(formData, "fromName");
-  const fromEmail = normalizeEmail(formValue(formData, "fromEmail"));
-  const replyToEmail = normalizeEmail(formValue(formData, "replyToEmail"));
-  const smtpHost = formValue(formData, "smtpHost");
-  const smtpPort = parseSmtpPort(formValue(formData, "smtpPort"));
-  const smtpUsername = formValue(formData, "smtpUsername") || null;
-  const smtpPassword = formValue(formData, "smtpPassword");
-  const smtpSecure = checkedValue(formData, "smtpSecure");
-
-  if (!fromName || !fromEmail || !smtpHost || !smtpPort) {
-    return {
-      error: "From name, from email, SMTP host, and SMTP port are required.",
-    };
-  }
-
-  if (!validEmail(fromEmail)) {
-    return { error: "Enter a valid from email." };
-  }
-
-  if (replyToEmail && !validEmail(replyToEmail)) {
-    return { error: "Enter a valid reply-to email." };
-  }
-
-  const existingSettings = await prisma.businessEmailSetting.findUnique({
-    where: {
-      businessId: user.businessId,
-    },
-  });
-
-  if (smtpUsername && !smtpPassword && !existingSettings?.smtpPasswordEncrypted) {
-    return {
-      error:
-        "Enter the SMTP password once, or clear the username for an unauthenticated SMTP server.",
-    };
-  }
-
-  const smtpPasswordEncrypted = smtpPassword
-    ? encryptSecret(smtpPassword)
-    : existingSettings?.smtpPasswordEncrypted ?? null;
-
-  await prisma.businessEmailSetting.upsert({
-    create: {
-      businessId: user.businessId,
-      fromEmail,
-      fromName,
-      replyToEmail: replyToEmail || null,
-      smtpHost,
-      smtpPasswordEncrypted,
-      smtpPort,
-      smtpSecure,
-      smtpUsername,
-    },
-    update: {
-      fromEmail,
-      fromName,
-      replyToEmail: replyToEmail || null,
-      smtpHost,
-      smtpPasswordEncrypted,
-      smtpPort,
-      smtpSecure,
-      smtpUsername,
-    },
-    where: {
-      businessId: user.businessId,
-    },
-  });
-
-  revalidatePath("/dashboard/settings");
-  revalidatePath("/dashboard/invoices");
-
-  return { success: "Email delivery settings saved." };
-}
-
-export async function sendBusinessEmailTest(
-  _state: SettingsActionState,
-  formData: FormData,
-): Promise<SettingsActionState> {
-  const user = await requireSettingsManager();
-  const recipientEmail = normalizeEmail(formValue(formData, "recipientEmail"));
-
-  if (!recipientEmail || !validEmail(recipientEmail)) {
-    return { error: "Enter a valid recipient email for the test." };
-  }
-
-  const settings = await prisma.businessEmailSetting.findUnique({
-    where: {
-      businessId: user.businessId,
-    },
-  });
-  const settingsError = validateEmailDeliverySettings(settings);
-
-  if (settingsError) {
-    return { error: settingsError };
-  }
-
-  if (!settings) {
-    return { error: "Configure SMTP settings before sending a test email." };
-  }
-
-  try {
-    const result = await sendSmtpMail(
-      {
-        host: settings.smtpHost,
-        password: settings.smtpPasswordEncrypted
-          ? decryptSecret(settings.smtpPasswordEncrypted)
-          : null,
-        port: settings.smtpPort,
-        secure: settings.smtpSecure,
-        username: settings.smtpUsername,
-      },
-      {
-        body: `This is a test email from ${user.business.name}.\n\nIf you received this, your SMTP settings are working.`,
-        from: {
-          email: settings.fromEmail,
-          name: settings.fromName,
-        },
-        replyTo: settings.replyToEmail,
-        subject: `Test email from ${user.business.name}`,
-        to: [recipientEmail],
-      },
-    );
-
-    return {
-      success: `Test email sent to ${recipientEmail}. Message ID: ${result.messageId}`,
-    };
-  } catch (error) {
-    return { error: `Email test failed: ${shortErrorMessage(error)}` };
-  }
 }
 
 export async function createTeamUser(

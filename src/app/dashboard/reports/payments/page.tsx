@@ -275,8 +275,8 @@ export default async function PaymentCollectionReportPage({
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[940px] border-collapse text-left text-sm">
+            <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+              <table className="responsive-data-table w-full border-collapse text-left text-sm">
                 <thead className="text-[11px] text-[#94a3b8]">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Customer</th>
@@ -293,7 +293,7 @@ export default async function PaymentCollectionReportPage({
                       className="transition hover:bg-[#e6f1fb]/40"
                       key={row.customerId ?? "no-customer"}
                     >
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4" data-label="Customer">
                         <div className="font-semibold">
                           {row.customerId ? (
                             <Link
@@ -312,20 +312,20 @@ export default async function PaymentCollectionReportPage({
                           </p>
                         ) : null}
                       </td>
-                      <td className="px-5 py-4 text-xs text-muted-foreground">
+                      <td className="px-5 py-4 text-xs text-muted-foreground" data-label="Contact">
                         <div>{row.phone ?? "No phone"}</div>
                         <div className="mt-1">{row.email ?? "No email"}</div>
                       </td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-4 text-right" data-label="Invoices">
                         {row.invoiceCount}
                       </td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-4 text-right" data-label="Payments">
                         {row.paymentCount}
                       </td>
-                      <td className="px-5 py-4 text-right font-semibold">
+                      <td className="px-5 py-4 text-right font-semibold" data-label="Collected">
                         {money.format(row.totalAmount)}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">
+                      <td className="px-5 py-4 text-muted-foreground" data-label="Last payment">
                         {row.lastPaymentDate
                           ? dates.format(row.lastPaymentDate)
                           : "No payment"}

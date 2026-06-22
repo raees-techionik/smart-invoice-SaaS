@@ -80,6 +80,7 @@ html {
 }
 
 .premium-card {
+  min-width: 0;
   border-color: rgba(255, 255, 255, 0.74);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 255, 0.8));
   box-shadow:
@@ -87,6 +88,24 @@ html {
     0 2px 4px rgba(30, 45, 75, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
+}
+
+.premium-card :is(form, fieldset, label) {
+  min-width: 0;
+}
+
+.premium-card :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-nav-scroll {
+  scrollbar-width: none;
+}
+
+.app-nav-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .premium-card-hover {
@@ -271,9 +290,85 @@ html {
   }
 }
 
+@media (max-width: 1535px) {
+  .responsive-data-table,
+  .responsive-data-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-data-table thead {
+    display: none;
+  }
+
+  .responsive-data-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+    padding: 14px 4px;
+  }
+
+  .responsive-data-table td {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+    justify-items: start;
+    overflow: visible !important;
+    padding: 0 !important;
+    text-align: left !important;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+  }
+
+  .responsive-data-table td::before {
+    content: attr(data-label);
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+}
+
+@media (max-width: 639px) {
+  .responsive-data-table tr {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media print {
   body {
     background: #ffffff;
+  }
+
+  .print-static-table {
+    display: table !important;
+  }
+
+  .print-static-table thead {
+    display: table-header-group !important;
+  }
+
+  .print-static-table tbody {
+    display: table-row-group !important;
+  }
+
+  .print-static-table tr {
+    display: table-row !important;
+    padding: 0 !important;
+  }
+
+  .print-static-table th,
+  .print-static-table td {
+    display: table-cell !important;
+    padding: 0.625rem 0.75rem !important;
+    text-align: inherit !important;
+    white-space: normal !important;
+  }
+
+  .print-static-table td::before {
+    content: none !important;
   }
 
   .premium-app-bg,

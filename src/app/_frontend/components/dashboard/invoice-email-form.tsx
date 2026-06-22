@@ -47,7 +47,7 @@ function PrepareEmailButton() {
       disabled={pending}
       type="submit"
     >
-      {pending ? "Preparing..." : "Prepare email"}
+      {pending ? "Preparing..." : "Prepare draft"}
     </button>
   );
 }
@@ -113,8 +113,8 @@ export function InvoiceEmailForm({
 
       <div className="flex flex-col gap-3 rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
         <p>
-          This saves the send-ready content now. Actual SMTP delivery will be
-          connected after business email settings are added.
+          This saves a copy-ready email draft. Send it manually from your email
+          app and attach the invoice PDF if needed.
         </p>
         <PrepareEmailButton />
       </div>

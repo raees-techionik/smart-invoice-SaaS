@@ -295,7 +295,7 @@ function SourceDocumentPreview({
   const textPreview = extractedText?.trim();
 
   return (
-    <div className="grid min-h-[420px] gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
+    <div className="grid gap-3 rounded-[10px] border border-border bg-[#f8f9fa] p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium text-muted-foreground">
@@ -314,16 +314,16 @@ function SourceDocumentPreview({
 
       {previewType === "document" ? (
         <object
-          className="h-[520px] w-full rounded-[8px] border border-border bg-white"
+          className="h-[360px] w-full rounded-[8px] border border-border bg-white"
           data={fileHref}
           type={fileType || undefined}
         >
-          <div className="grid h-[520px] place-items-center rounded-[8px] border border-border bg-white p-6 text-center text-sm leading-6 text-muted-foreground">
+          <div className="grid h-[360px] place-items-center rounded-[8px] border border-border bg-white p-6 text-center text-sm leading-6 text-muted-foreground">
             File preview unavailable.
           </div>
         </object>
       ) : (
-        <pre className="h-[520px] overflow-auto rounded-[8px] border border-border bg-white p-3 text-[11px] leading-5 text-slate-700">
+        <pre className="max-h-[360px] overflow-y-auto whitespace-pre-wrap break-words rounded-[8px] border border-border bg-white p-3 text-[11px] leading-5 text-slate-700">
           {textPreview || "No extracted text available."}
         </pre>
       )}
@@ -489,7 +489,7 @@ export default async function ImportDetailPage({
         </div>
       </section>
 
-      <section className="grid gap-3.5 xl:grid-cols-[0.72fr_1.28fr]">
+      <section className="grid items-start gap-3.5 xl:grid-cols-[0.72fr_1.28fr]">
         <aside className="grid content-start gap-6">
           <div className="rounded-[14px] border border-border bg-white p-4">
             <p className="text-sm font-medium text-muted-foreground">
@@ -570,7 +570,7 @@ export default async function ImportDetailPage({
           ) : null}
         </aside>
 
-        <div className="grid gap-3.5">
+        <div className="grid max-h-[1400px] gap-3.5 overflow-y-auto overflow-x-hidden pr-1">
           {importJob.documents.map((document) => {
             const fileHref = `/dashboard/imports/${importJob.id}/documents/${document.id}/file`;
             const warnings = reviewWarnings(document.fields, importJob.importType);
@@ -604,7 +604,7 @@ export default async function ImportDetailPage({
                 <input name="importJobId" type="hidden" value={importJob.id} />
                 <input name="documentId" type="hidden" value={document.id} />
 
-                <div className="grid gap-4 xl:grid-cols-[0.7fr_1.3fr]">
+                <div className="grid gap-4 2xl:grid-cols-[0.7fr_1.3fr]">
                   <SourceDocumentPreview
                     extractedText={document.extractedText}
                     fileHref={fileHref}
@@ -622,43 +622,51 @@ export default async function ImportDetailPage({
                       </div>
                     ) : null}
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-                        <thead className="text-[11px] text-[#94a3b8]">
-                          <tr>
-                            <th className="px-4 py-3 font-semibold">Source field</th>
-                            <th className="px-4 py-3 font-semibold">
-                              Extracted value
-                            </th>
-                            <th className="px-4 py-3 font-semibold">
-                              Corrected value
-                            </th>
-                            <th className="px-4 py-3 font-semibold">Map to</th>
-                            <th className="px-4 py-3 font-semibold">Status</th>
-                            <th className="px-4 py-3 font-semibold">Confidence</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {document.fields.map((field) => {
-                            const lowConfidence = confidenceLevel(field.confidence) === "low";
+                    <div className="grid max-h-[640px] gap-3 overflow-y-auto overflow-x-hidden pr-1">
+                      {document.fields.map((field) => {
+                        const lowConfidence =
+                          confidenceLevel(field.confidence) === "low";
 
-                            return (
-                            <tr
-                              className={lowConfidence ? "bg-red-50/50" : undefined}
-                              key={field.id}
-                            >
-                              <td className="px-4 py-4 align-top">
-                                <input name="fieldId" type="hidden" value={field.id} />
-                                <p className="font-semibold">{field.fieldName}</p>
-                              </td>
-                              <td className="max-w-[240px] px-4 py-4 align-top text-muted-foreground">
-                                <p className="line-clamp-4 whitespace-pre-wrap">
-                                  {field.extractedValue || "No extracted value"}
+                        return (
+                          <article
+                            className={`grid gap-3 rounded-[10px] border p-3 ${
+                              lowConfidence
+                                ? "border-red-200 bg-red-50/60"
+                                : "border-border bg-[#f8f9fa]"
+                            }`}
+                            key={field.id}
+                          >
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <input
+                                  name="fieldId"
+                                  type="hidden"
+                                  value={field.id}
+                                />
+                                <p className="break-words text-sm font-semibold">
+                                  {field.fieldName}
                                 </p>
-                              </td>
-                              <td className="px-4 py-4 align-top">
+                                <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                  Source field
+                                </p>
+                              </div>
+                              <ConfidenceBadge value={field.confidence} />
+                            </div>
+
+                            <div className="rounded-[8px] border border-border bg-white/85 p-3">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                                Extracted value
+                              </p>
+                              <p className="mt-2 max-h-28 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+                                {field.extractedValue || "No extracted value"}
+                              </p>
+                            </div>
+
+                            <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_180px_150px]">
+                              <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                                Corrected value
                                 <textarea
-                                  className="min-h-20 w-full rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] outline-none transition focus:border-accent"
+                                  className="min-h-24 w-full min-w-0 rounded-[7px] border border-border bg-white px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
                                   defaultValue={
                                     field.correctedValue ??
                                     field.extractedValue ??
@@ -666,10 +674,12 @@ export default async function ImportDetailPage({
                                   }
                                   name={`correctedValue:${field.id}`}
                                 />
-                              </td>
-                              <td className="px-4 py-4 align-top">
+                              </label>
+
+                              <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                                Map to
                                 <select
-                                  className="h-[34px] w-full rounded-[7px] border border-border bg-white px-2.5 text-[12px] outline-none transition focus:border-accent"
+                                  className="h-[34px] w-full min-w-0 rounded-[7px] border border-border bg-white px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
                                   defaultValue={mappedFieldDefault(
                                     field.fieldName,
                                     allowedMappedFields,
@@ -679,32 +689,35 @@ export default async function ImportDetailPage({
                                 >
                                   <option value="">Do not map yet</option>
                                   {allowedMappedFields.map((mappedField) => (
-                                    <option key={mappedField} value={mappedField}>
+                                    <option
+                                      key={mappedField}
+                                      value={mappedField}
+                                    >
                                       {mappedField}
                                     </option>
                                   ))}
                                 </select>
-                              </td>
-                              <td className="px-4 py-4 align-top">
+                              </label>
+
+                              <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+                                Status
                                 <select
-                                  className="h-[34px] w-full rounded-[7px] border border-border bg-white px-2.5 text-[12px] capitalize outline-none transition focus:border-accent"
+                                  className="h-[34px] w-full min-w-0 rounded-[7px] border border-border bg-white px-2.5 text-[12px] capitalize text-foreground outline-none transition focus:border-accent"
                                   defaultValue={field.status}
                                   name={`status:${field.id}`}
                                 >
                                   <option value="extracted">Extracted</option>
-                                  <option value="needs_review">Needs review</option>
+                                  <option value="needs_review">
+                                    Needs review
+                                  </option>
                                   <option value="reviewed">Reviewed</option>
                                   <option value="ignored">Ignored</option>
                                 </select>
-                              </td>
-                              <td className="px-4 py-4 align-top font-semibold">
-                                <ConfidenceBadge value={field.confidence} />
-                              </td>
-                            </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                              </label>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

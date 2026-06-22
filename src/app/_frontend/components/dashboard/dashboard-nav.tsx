@@ -8,22 +8,23 @@ import {
   canViewReports,
 } from "@/app/_backend/lib/auth/role-utils";
 import { cn } from "@/app/_backend/lib/utils";
+import { AppIcon, type AppIconName } from "@/app/_frontend/components/dashboard/app-icons";
 
 const navItems = [
-  { href: "/dashboard", icon: "DB", label: "Dashboard", status: "Live" },
-  { href: "/dashboard/invoices", icon: "IV", label: "Invoices", status: "Live" },
-  { href: "/dashboard/invoices", icon: "+", label: "New invoice", status: "Live" },
-  { href: "/dashboard/customers", icon: "CU", label: "Customers", status: "Live" },
-  { href: "/dashboard/products", icon: "BX", label: "Products", status: "Live" },
-  { href: "/dashboard/inventory", icon: "PK", label: "Inventory", status: "Live" },
+  { href: "/dashboard", icon: "dashboard", label: "Dashboard", status: "Live" },
+  { href: "/dashboard/invoices", icon: "invoice", label: "Invoices", status: "Live" },
+  { href: "/dashboard/invoices", icon: "plus", label: "New invoice", status: "Live" },
+  { href: "/dashboard/customers", icon: "users", label: "Customers", status: "Live" },
+  { href: "/dashboard/products", icon: "box", label: "Products", status: "Live" },
+  { href: "/dashboard/inventory", icon: "stock", label: "Inventory", status: "Live" },
   { section: "Finance", href: "", icon: "", label: "", status: "Soon" },
-  { href: "/dashboard/payments", icon: "PY", label: "Payments", status: "Live" },
-  { href: "/dashboard/expenses", icon: "EX", label: "Expenses", status: "Live" },
-  { href: "/dashboard/reports", icon: "RP", label: "Reports", status: "Live" },
+  { href: "/dashboard/payments", icon: "credit-card", label: "Payments", status: "Live" },
+  { href: "/dashboard/expenses", icon: "expense", label: "Expenses", status: "Live" },
+  { href: "/dashboard/reports", icon: "chart", label: "Reports", status: "Live" },
   { section: "Tools", href: "", icon: "", label: "", status: "Soon" },
-  { href: "/dashboard/imports", icon: "SC", label: "Smart import", status: "Live" },
-  { href: "/dashboard/pos", icon: "PS", label: "POS", status: "Live" },
-  { href: "/dashboard/settings", icon: "SE", label: "Settings", status: "Live" },
+  { href: "/dashboard/imports", icon: "scan", label: "Smart import", status: "Live" },
+  { href: "/dashboard/pos", icon: "pos", label: "POS", status: "Live" },
+  { href: "/dashboard/settings", icon: "gear", label: "Settings", status: "Live" },
 ] as const;
 
 export function DashboardNav({ role }: { role: string }) {
@@ -36,7 +37,7 @@ export function DashboardNav({ role }: { role: string }) {
   );
 
   return (
-    <nav className="flex gap-2 overflow-x-auto px-2 py-2.5 lg:grid lg:gap-1 lg:overflow-visible">
+    <nav className="app-nav-scroll flex gap-2 overflow-x-auto px-2 py-2.5 lg:grid lg:gap-1 lg:overflow-visible">
       {visibleNavItems.map((item) => {
         if ("section" in item) {
           return (
@@ -69,13 +70,13 @@ export function DashboardNav({ role }: { role: string }) {
             <span className="flex items-center gap-3">
               <span
                 className={cn(
-                  "grid size-6 place-items-center rounded-[7px] text-[9px] font-semibold",
+                  "grid size-6 place-items-center rounded-[7px]",
                   isActive
                     ? "bg-white/10 text-white"
                     : "bg-white/[0.06] text-white/55",
                 )}
               >
-                {item.icon}
+                <AppIcon className="size-3.5" name={item.icon as AppIconName} />
               </span>
               {item.label}
             </span>

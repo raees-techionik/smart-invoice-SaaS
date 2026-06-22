@@ -223,8 +223,8 @@ export default async function SalesReportPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Period</th>
@@ -240,28 +240,28 @@ export default async function SalesReportPage({
               <tbody className="divide-y divide-border">
                 {report.rows.map((row) => (
                   <tr className="transition hover:bg-[#e6f1fb]/40" key={row.periodKey}>
-                    <td className="px-5 py-4 font-semibold">
+                    <td className="px-5 py-4 font-semibold" data-label="Period">
                       {row.periodLabel}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Invoices">
                       {row.invoiceCount}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Gross sales">
                       {money.format(row.grossSales)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Refunds">
                       {money.format(row.refundAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net sales">
                       {money.format(row.netSales)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Payments">
                       {money.format(row.paymentsReceived)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Outstanding">
                       {money.format(row.balanceAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right text-muted-foreground">
+                    <td className="px-5 py-4 text-right text-muted-foreground" data-label="Avg invoice">
                       {money.format(row.averageInvoiceValue)}
                     </td>
                   </tr>

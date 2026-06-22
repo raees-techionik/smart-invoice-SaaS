@@ -206,8 +206,8 @@ export default async function TaxSummaryPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Tax rate</th>
@@ -224,7 +224,7 @@ export default async function TaxSummaryPage({
               <tbody className="divide-y divide-border">
                 {report.rows.map((row) => (
                   <tr className="transition hover:bg-[#e6f1fb]/40" key={row.taxRate}>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" data-label="Tax rate">
                       <span className="rounded-[5px] border border-border bg-[#f8f9fa] px-2 py-0.5 text-[11px] font-semibold">
                         {taxRateLabel(row.taxRate)}
                       </span>
@@ -240,28 +240,28 @@ export default async function TaxSummaryPage({
                         />
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Gross sales">
                       {money.format(row.grossSales)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Taxable sales">
                       {money.format(row.taxableSales)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Tax collected">
                       {money.format(row.taxCollected)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Refunded taxable">
                       {money.format(row.refundedTaxableSales)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Refunded tax">
                       {money.format(row.refundedTax)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net taxable">
                       {money.format(row.netTaxableSales)}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Net tax">
                       {money.format(row.netTax)}
                     </td>
-                    <td className="px-5 py-4 text-right text-muted-foreground">
+                    <td className="px-5 py-4 text-right text-muted-foreground" data-label="Invoices">
                       {row.invoiceCount}
                     </td>
                   </tr>

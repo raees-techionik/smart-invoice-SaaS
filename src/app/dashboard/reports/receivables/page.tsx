@@ -385,8 +385,8 @@ export default async function ReceivablesReportPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <div className="max-h-[560px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Customer</th>
@@ -417,7 +417,7 @@ export default async function ReceivablesReportPage({
                     className="transition hover:bg-[#e6f1fb]/40"
                     key={statement.customerId || statement.name}
                   >
-                    <td className="px-5 py-4 align-top">
+                    <td className="px-5 py-4 align-top" data-label="Customer">
                       {statement.customerId ? (
                         <Link
                           className="font-semibold text-accent hover:underline"
@@ -438,25 +438,25 @@ export default async function ReceivablesReportPage({
                         Oldest {Math.max(statement.oldestDays, 0)} days
                       </p>
                     </td>
-                    <td className="px-5 py-4 text-right align-top font-semibold">
+                    <td className="px-5 py-4 text-right align-top font-semibold" data-label="Total">
                       {money.format(statement.total)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="Current">
                       {money.format(statement.buckets.current)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="1-30">
                       {money.format(statement.buckets.days1to30)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="31-60">
                       {money.format(statement.buckets.days31to60)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="61-90">
                       {money.format(statement.buckets.days61to90)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="90+">
                       {money.format(statement.buckets.days90plus)}
                     </td>
-                    <td className="px-5 py-4 text-right align-top text-muted-foreground">
+                    <td className="px-5 py-4 text-right align-top text-muted-foreground" data-label="Invoices">
                       {statement.invoiceCount}
                     </td>
                   </tr>
@@ -487,8 +487,8 @@ export default async function ReceivablesReportPage({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Invoice</th>
@@ -512,7 +512,7 @@ export default async function ReceivablesReportPage({
                     className="transition hover:bg-[#e6f1fb]/40"
                     key={row.invoice.id}
                   >
-                    <td className="px-5 py-4 align-top">
+                    <td className="px-5 py-4 align-top" data-label="Invoice">
                       <Link
                         className="font-semibold text-accent hover:underline"
                         href={`/dashboard/invoices/${row.invoice.id}`}
@@ -523,16 +523,16 @@ export default async function ReceivablesReportPage({
                         {dateFormatter(row.invoice.invoiceDate)}
                       </p>
                     </td>
-                    <td className="px-5 py-4 align-top">
+                    <td className="px-5 py-4 align-top" data-label="Customer">
                       {row.customer?.name ?? "No customer"}
                       <p className="mt-1 text-muted-foreground">
                         {row.customer?.businessName ?? "Individual"}
                       </p>
                     </td>
-                    <td className="px-5 py-4 align-top text-muted-foreground">
+                    <td className="px-5 py-4 align-top text-muted-foreground" data-label="Due date">
                       {dateFormatter(row.dueDate)}
                     </td>
-                    <td className="px-5 py-4 align-top">
+                    <td className="px-5 py-4 align-top" data-label="Age">
                       <BucketBadge daysOverdue={row.daysOverdue} />
                       <p className="mt-1 text-xs text-muted-foreground">
                         {row.daysOverdue > 0
@@ -540,13 +540,13 @@ export default async function ReceivablesReportPage({
                           : "Not due yet"}
                       </p>
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="Total">
                       {money.format(Number(row.invoice.grandTotal))}
                     </td>
-                    <td className="px-5 py-4 text-right align-top">
+                    <td className="px-5 py-4 text-right align-top" data-label="Paid">
                       {money.format(Number(row.invoice.paidAmount))}
                     </td>
-                    <td className="px-5 py-4 text-right align-top font-semibold">
+                    <td className="px-5 py-4 text-right align-top font-semibold" data-label="Balance">
                       {money.format(row.balance)}
                     </td>
                   </tr>

@@ -9,6 +9,8 @@ import { CustomerForm } from "@/app/_frontend/components/dashboard/customer-form
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { buildCustomerCommunicationTimeline } from "@/app/_backend/lib/communication-timeline";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type CustomerDetailPageProps = {
   params: Promise<{
@@ -78,7 +80,7 @@ function MetricCard({
       <div
         className={`mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="font-mono text-[20px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -377,8 +379,8 @@ export default async function CustomerDetailPage({
                 title="No invoices yet"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] border-collapse text-left text-xs">
+              <div className="max-h-[520px] overflow-y-auto overflow-x-hidden">
+                <table className="responsive-data-table w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                       <th className="pb-2 pr-4 font-normal">Invoice</th>
@@ -396,7 +398,7 @@ export default async function CustomerDetailPage({
                         className="border-b border-border transition last:border-0 hover:bg-black/[0.015]"
                         key={invoice.id}
                       >
-                        <td className="py-2.5 pr-4 align-top">
+                        <td className="py-2.5 pr-4 align-top" data-label="Invoice">
                           <Link
                             className="font-medium text-[#185fa5]"
                             href={`/dashboard/invoices/${invoice.id}`}
@@ -407,16 +409,16 @@ export default async function CustomerDetailPage({
                             {money.format(Number(invoice.grandTotal))}
                           </p>
                         </td>
-                        <td className="py-2.5 pr-4 align-top text-muted-foreground">
+                        <td className="py-2.5 pr-4 align-top text-muted-foreground" data-label="Date">
                           {dateFormatter(invoice.invoiceDate)}
                         </td>
-                        <td className="py-2.5 pr-4 text-right align-top font-mono">
+                        <td className="py-2.5 pr-4 text-right align-top font-mono" data-label="Items">
                           {invoice._count.items}
                         </td>
-                        <td className="py-2.5 pr-4 text-right align-top">
+                        <td className="py-2.5 pr-4 text-right align-top" data-label="Payment">
                           <StatusBadge label={paymentStatus(invoice)} />
                         </td>
-                        <td className="py-2.5 text-right align-top font-mono font-medium">
+                        <td className="py-2.5 text-right align-top font-mono font-medium" data-label="Balance">
                           {money.format(Number(invoice.balanceAmount))}
                         </td>
                       </tr>

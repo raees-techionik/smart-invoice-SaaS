@@ -2,12 +2,13 @@ import Link from "next/link";
 
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, type AppIconName } from "@/app/_frontend/components/dashboard/app-icons";
 
 const quickActions = [
-  { href: "/dashboard/invoices", label: "New invoice", symbol: "+" },
-  { href: "/dashboard/customers", label: "Customer", symbol: "CU" },
-  { href: "/dashboard/products", label: "Product", symbol: "BX" },
-  { href: "/dashboard/pos", label: "POS", symbol: "PS" },
+  { href: "/dashboard/invoices", icon: "plus", label: "New invoice" },
+  { href: "/dashboard/customers", icon: "users", label: "Customer" },
+  { href: "/dashboard/products", icon: "box", label: "Product" },
+  { href: "/dashboard/pos", icon: "pos", label: "POS" },
 ];
 
 function currencyFormatter(currency: string) {
@@ -75,11 +76,13 @@ function sumNumbers(values: number[]) {
 
 function StatCard({
   detail,
+  icon,
   label,
   tone,
   value,
 }: {
   detail: string;
+  icon: AppIconName;
   label: string;
   tone: "blue" | "green" | "amber" | "red";
   value: string;
@@ -103,9 +106,9 @@ function StatCard({
         className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${toneLineClasses[tone]}`}
       />
       <div
-        className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
+        className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={icon} />
       </div>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -177,7 +180,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">Rs</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="profit" /></div>
       </div>
     </div>
   );
@@ -626,24 +629,28 @@ export default async function DashboardPage() {
       <section className="relative z-[1] grid grid-cols-1 gap-[11px] md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           detail={`${invoiceCount} invoice records`}
+          icon="profit"
           label="Net sales"
           tone="green"
           value={money.format(netSales)}
         />
         <StatCard
           detail={`${unpaidInvoices} invoices need follow-up`}
+          icon="invoice"
           label="Unpaid invoices"
           tone={unpaidInvoices > 0 ? "amber" : "blue"}
           value={`${unpaidInvoices}`}
         />
         <StatCard
           detail={`${lowStockItems.length} critical stock items`}
+          icon="stock"
           label="Low stock alerts"
           tone={lowStockItems.length > 0 ? "amber" : "green"}
           value={`${lowStockItems.length}`}
         />
         <StatCard
           detail={`${customerCount} customers / ${productCount} catalog items`}
+          icon="chart"
           label="Estimated profit"
           tone={estimatedProfit < 0 ? "red" : "blue"}
           value={money.format(estimatedProfit)}
@@ -723,8 +730,8 @@ export default async function DashboardPage() {
                 href={action.href}
                 key={action.label}
               >
-                <span className="text-[10px] font-semibold text-[#635bff]">
-                  {action.symbol}
+                <span className="text-[#635bff]">
+                  <AppIcon className="size-3.5" name={action.icon as AppIconName} />
                 </span>
                 {action.label}
               </Link>

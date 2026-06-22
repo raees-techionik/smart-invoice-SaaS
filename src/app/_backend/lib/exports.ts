@@ -1088,7 +1088,6 @@ async function buildDatasetExportObjects(
 export async function buildBusinessBackup(businessId: string) {
   const [
     business,
-    businessEmailSetting,
     users,
     customers,
     products,
@@ -1109,11 +1108,6 @@ export async function buildBusinessBackup(businessId: string) {
     prisma.business.findUniqueOrThrow({
       where: {
         id: businessId,
-      },
-    }),
-    prisma.businessEmailSetting.findUnique({
-      where: {
-        businessId,
       },
     }),
     prisma.user.findMany({
@@ -1281,22 +1275,6 @@ export async function buildBusinessBackup(businessId: string) {
     backupVersion: 3,
     exportedAt: new Date().toISOString(),
     business,
-    businessEmailSetting: businessEmailSetting
-      ? {
-          businessId: businessEmailSetting.businessId,
-          createdAt: businessEmailSetting.createdAt,
-          fromEmail: businessEmailSetting.fromEmail,
-          fromName: businessEmailSetting.fromName,
-          hasSmtpPassword: Boolean(businessEmailSetting.smtpPasswordEncrypted),
-          id: businessEmailSetting.id,
-          replyToEmail: businessEmailSetting.replyToEmail,
-          smtpHost: businessEmailSetting.smtpHost,
-          smtpPort: businessEmailSetting.smtpPort,
-          smtpSecure: businessEmailSetting.smtpSecure,
-          smtpUsername: businessEmailSetting.smtpUsername,
-          updatedAt: businessEmailSetting.updatedAt,
-        }
-      : null,
     customers,
     communicationNotes,
     documentFieldMappings,

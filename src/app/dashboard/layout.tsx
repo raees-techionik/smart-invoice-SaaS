@@ -2,17 +2,9 @@ import { redirect } from "next/navigation";
 
 import { DashboardNav } from "@/app/_frontend/components/dashboard/dashboard-nav";
 import { DashboardTopbar } from "@/app/_frontend/components/dashboard/dashboard-topbar";
+import { AppIcon } from "@/app/_frontend/components/dashboard/app-icons";
 import { LogoutButton } from "@/app/_frontend/components/forms/logout-button";
 import { requireUser } from "@/app/_backend/lib/auth/session";
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "SB";
-}
 
 export default async function DashboardLayout({
   children,
@@ -51,7 +43,7 @@ export default async function DashboardLayout({
           <div className="mt-auto hidden border-t border-white/[0.06] px-2 py-3 lg:block">
             <div className="flex items-center gap-2 rounded-[9px] border border-white/[0.07] bg-white/[0.04] px-2 py-2 transition hover:bg-white/[0.07]">
               <div className="premium-avatar grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white">
-                {initials(user.name)}
+                <AppIcon className="size-3.5" name="user" />
               </div>
               <div className="min-w-0">
                 <p className="truncate text-[12px] text-white/70">{user.name}</p>
@@ -68,7 +60,7 @@ export default async function DashboardLayout({
           </div>
         </aside>
         <div className="premium-shell min-w-0 flex-1">
-          <DashboardTopbar userName={user.name} />
+          <DashboardTopbar />
           <main className="px-[22px] py-5 print:p-0">
             {children}
           </main>

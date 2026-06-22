@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { AppIcon } from "@/app/_frontend/components/dashboard/app-icons";
+
 const pageLabels = [
   { match: "/dashboard/invoices", title: "Invoices", sub: "Create, review, and finalize billing" },
   { match: "/dashboard/customers", title: "Customers", sub: "Customer records and receivables" },
@@ -16,17 +18,6 @@ const pageLabels = [
   { match: "/dashboard/settings", title: "Settings", sub: "Business profile and preferences" },
   { match: "/dashboard/templates", title: "Templates", sub: "Reusable invoice layouts" },
 ];
-
-function initials(name: string) {
-  return (
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join("") || "SB"
-  );
-}
 
 function todayLabel() {
   return new Intl.DateTimeFormat("en", {
@@ -51,7 +42,7 @@ function pageTitle(pathname: string) {
   );
 }
 
-export function DashboardTopbar({ userName }: { userName: string }) {
+export function DashboardTopbar() {
   const pathname = usePathname();
   const page = pageTitle(pathname);
 
@@ -63,29 +54,20 @@ export function DashboardTopbar({ userName }: { userName: string }) {
       </div>
       <div className="flex items-center gap-2">
         <div className="relative w-[190px]">
-          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[#94a3b8]">
-            Search
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94a3b8]">
+            <AppIcon className="size-3.5" name="search" />
           </span>
           <input
-            className="premium-soft-button h-[31px] w-full rounded-lg border pl-[58px] pr-3 text-xs outline-none transition focus:border-accent focus:bg-white"
-            placeholder="..."
+            className="premium-soft-button h-[31px] w-full rounded-lg border pl-8 pr-3 text-xs outline-none transition focus:border-accent focus:bg-white"
+            placeholder="Search"
           />
         </div>
-        <span className="premium-soft-button relative grid size-[30px] place-items-center rounded-lg border text-xs text-muted-foreground">
-          N
-          <span className="absolute right-1 top-1 size-[5px] rounded-full bg-danger ring-2 ring-white" />
-        </span>
-        <span className="premium-soft-button grid size-[30px] place-items-center rounded-lg border text-xs text-muted-foreground">
-          R
-        </span>
-        <span className="premium-avatar grid size-[30px] place-items-center rounded-full text-[11px] font-semibold text-white">
-          {initials(userName)}
-        </span>
         <Link
-          className="premium-button inline-flex h-[31px] items-center justify-center rounded-lg px-3.5 text-[12.5px] font-medium text-white transition hover:brightness-105"
+          className="premium-button inline-flex h-[31px] items-center justify-center gap-1.5 rounded-lg px-3.5 text-[12.5px] font-medium text-white transition hover:brightness-105"
           href="/dashboard/invoices"
         >
-          + New invoice
+          <AppIcon className="size-3.5" name="plus" />
+          New invoice
         </Link>
       </div>
     </header>

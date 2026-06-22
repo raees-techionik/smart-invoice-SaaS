@@ -4,6 +4,8 @@ import Link from "next/link";
 import { CustomerForm } from "@/app/_frontend/components/dashboard/customer-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type CustomersPageProps = {
   searchParams: Promise<{
@@ -57,7 +59,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="font-mono text-[21px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -73,7 +75,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">CU</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="users" /></div>
       </div>
     </div>
   );
@@ -211,7 +213,7 @@ export default async function CustomersPage({
         />
       </section>
 
-      <section className="relative z-[1] grid gap-[11px] xl:grid-cols-[0.88fr_1.12fr]">
+      <section className="relative z-[1] grid items-start gap-[11px] xl:grid-cols-[0.88fr_1.12fr]">
         <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-[13px] flex items-center justify-between gap-4">
             <h3 className="text-[13px] font-medium">New customer</h3>
@@ -220,7 +222,7 @@ export default async function CustomersPage({
           <CustomerForm />
         </div>
 
-        <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+        <div className="premium-card max-h-[760px] overflow-hidden rounded-[16px] border p-4">
           <div className="mb-[13px] flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h3 className="text-[13px] font-medium">
                 {search ? `Matches for "${search}"` : "Latest customers"}
@@ -245,8 +247,8 @@ export default async function CustomersPage({
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+            <div className="max-h-[640px] overflow-y-auto overflow-x-hidden pr-1">
+              <table className="responsive-data-table w-full border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                     <th className="pb-2 pr-4 font-normal">Customer</th>
@@ -263,7 +265,7 @@ export default async function CustomersPage({
                       className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                       key={customer.id}
                     >
-                      <td className="py-2.5 pr-4 align-top">
+                      <td className="py-2.5 pr-4 align-top" data-label="Customer">
                         <Link
                           className="font-medium text-[#185fa5]"
                           href={`/dashboard/customers/${customer.id}`}
@@ -274,22 +276,22 @@ export default async function CustomersPage({
                           {customer.businessName || "Individual customer"}
                         </p>
                       </td>
-                      <td className="py-2.5 pr-4 align-top">
+                      <td className="py-2.5 pr-4 align-top" data-label="Contact">
                         <p>{customer.phone || "No phone"}</p>
                         <p className="mt-1 text-[10.5px] text-[#94a3b8]">
                           {customer.email || "No email"}
                         </p>
                       </td>
-                      <td className="py-2.5 pr-4 text-right align-top font-mono font-medium">
+                      <td className="py-2.5 pr-4 text-right align-top font-mono font-medium" data-label="Balance">
                         {money.format(Number(customer.openingBalance))}
                       </td>
-                      <td className="py-2.5 pr-4 text-right align-top font-mono">
+                      <td className="py-2.5 pr-4 text-right align-top font-mono" data-label="Invoices">
                         {customer._count.invoices}
                       </td>
-                      <td className="py-2.5 pr-4 text-right align-top">
+                      <td className="py-2.5 pr-4 text-right align-top" data-label="Status">
                         <StatusBadge status={customer.status} />
                       </td>
-                      <td className="py-2.5 text-right align-top text-muted-foreground">
+                      <td className="py-2.5 text-right align-top text-muted-foreground" data-label="Created">
                         {dateFormatter(customer.createdAt)}
                       </td>
                     </tr>

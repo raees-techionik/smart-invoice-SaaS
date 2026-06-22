@@ -9,7 +9,6 @@ type BackupRecord = Record<string, unknown>;
 type BusinessBackup = {
   backupVersion?: unknown;
   business?: BackupRecord | null;
-  businessEmailSetting?: BackupRecord | null;
   communicationNotes?: BackupRecord[];
   customers?: BackupRecord[];
   documentFieldMappings?: BackupRecord[];
@@ -162,8 +161,7 @@ export function previewBusinessBackup(jsonText: string): BackupRestorePreview {
 
   const warnings = [
     "Merge restore does not delete existing records.",
-    "Users, passwords, SMTP passwords, sessions, and export audit history are not restored.",
-    "Email settings are restored without the SMTP password and must be completed again before sending.",
+    "Users, passwords, sessions, and export audit history are not restored.",
     "Uploaded file binaries are not included in the JSON backup; stored file paths are restored as references only.",
   ];
   const counts = Object.fromEntries(
@@ -231,55 +229,6 @@ async function mergeBusinessProfile(
       },
     });
   }
-}
-
-async function mergeBusinessEmailSetting(
-  tx: Prisma.TransactionClient,
-  businessId: string,
-  setting: BackupRecord | null | undefined,
-) {
-  if (
-    !setting ||
-    !stringValue(setting.fromName) ||
-    !stringValue(setting.fromEmail) ||
-    !stringValue(setting.smtpHost)
-  ) {
-    return;
-  }
-
-  const data = {
-    fromEmail: stringValue(setting.fromEmail),
-    fromName: stringValue(setting.fromName),
-    replyToEmail: nullableString(setting.replyToEmail),
-    smtpHost: stringValue(setting.smtpHost),
-    smtpPort: numberValue(setting.smtpPort, 587),
-    smtpSecure: booleanValue(setting.smtpSecure),
-    smtpUsername: nullableString(setting.smtpUsername),
-  };
-  const existing = await tx.businessEmailSetting.findUnique({
-    where: {
-      businessId,
-    },
-  });
-
-  if (existing) {
-    await tx.businessEmailSetting.update({
-      data,
-      where: {
-        businessId,
-      },
-    });
-    return;
-  }
-
-  await tx.businessEmailSetting.create({
-    data: {
-      ...data,
-      businessId,
-      createdAt: dateValue(setting.createdAt),
-      smtpPasswordEncrypted: null,
-    },
-  });
 }
 
 async function restoreCustomers(
@@ -1327,11 +1276,6 @@ export async function restoreBusinessBackupMerge(
   await prisma.$transaction(
     async (tx) => {
       await mergeBusinessProfile(tx, businessId, backup.business);
-      await mergeBusinessEmailSetting(
-        tx,
-        businessId,
-        backup.businessEmailSetting,
-      );
       await restoreCustomers(
         tx,
         businessId,

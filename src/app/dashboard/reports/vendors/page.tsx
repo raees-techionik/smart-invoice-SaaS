@@ -222,8 +222,8 @@ export default async function VendorExpenseReportPage({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
+          <div className="max-h-[640px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-sm">
               <thead className="text-[11px] text-[#94a3b8]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Vendor</th>
@@ -239,32 +239,32 @@ export default async function VendorExpenseReportPage({
               <tbody className="divide-y divide-border">
                 {report.rows.map((row) => (
                   <tr className="transition hover:bg-[#e6f1fb]/40" key={row.vendor}>
-                    <td className="px-5 py-4 font-semibold">{row.vendor}</td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 font-semibold" data-label="Vendor">{row.vendor}</td>
+                    <td className="px-5 py-4 text-right" data-label="Records">
                       {row.expenseCount}
                     </td>
-                    <td className="px-5 py-4 text-right font-semibold">
+                    <td className="px-5 py-4 text-right font-semibold" data-label="Total">
                       {money.format(row.totalAmount)}
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right" data-label="Share">
                       {row.percentOfExpenses.toFixed(2)}%
                     </td>
-                    <td className="px-5 py-4 text-right text-muted-foreground">
+                    <td className="px-5 py-4 text-right text-muted-foreground" data-label="Average">
                       {money.format(row.averageExpenseAmount)}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" data-label="Top category">
                       <div>{row.topCategory ?? "Uncategorized"}</div>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {money.format(row.topCategoryAmount)}
                       </p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" data-label="Top method">
                       <div>{row.topPaymentMethod ?? "Not set"}</div>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {money.format(row.topPaymentMethodAmount)}
                       </p>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">
+                    <td className="px-5 py-4 text-muted-foreground" data-label="Last expense">
                       {row.lastExpenseDate
                         ? dates.format(row.lastExpenseDate)
                         : "No expense"}

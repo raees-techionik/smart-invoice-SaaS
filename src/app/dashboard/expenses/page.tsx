@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ExpenseForm } from "@/app/_frontend/components/dashboard/expense-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type ExpensesPageProps = {
   searchParams: Promise<{
@@ -73,7 +75,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-3 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
@@ -91,7 +93,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">EX</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="expense" /></div>
       </div>
     </div>
   );
@@ -237,7 +239,7 @@ export default async function ExpensesPage({
         />
       </section>
 
-      <section className="relative z-[1] grid gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
+      <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="premium-card rounded-[16px] border p-4">
           <div className="mb-5">
             <p className="text-sm font-medium text-muted-foreground">
@@ -249,7 +251,7 @@ export default async function ExpensesPage({
         </div>
 
         <div className="grid gap-3.5 content-start">
-          <div className="premium-card overflow-hidden rounded-[16px] border p-4">
+          <div className="premium-card flex max-h-[560px] flex-col overflow-hidden rounded-[16px] border p-4 md:max-h-[760px]">
             <div className="flex flex-col gap-2 border-b border-border p-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -273,14 +275,14 @@ export default async function ExpensesPage({
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-border">
+              <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto overflow-x-hidden">
                 {categoryTotals.map((category) => (
                   <div
-                    className="flex items-center justify-between gap-4 p-4 transition hover:bg-[#635bff]/[0.04]"
+                    className="flex flex-col gap-1 p-4 transition hover:bg-[#635bff]/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                     key={category.category}
                   >
-                    <span className="font-semibold">{category.category}</span>
-                    <span className="font-semibold">
+                    <span className="min-w-0 break-words font-semibold">{category.category}</span>
+                    <span className="shrink-0 font-semibold">
                       {money.format(Number(category._sum.amount ?? 0))}
                     </span>
                   </div>
@@ -318,8 +320,8 @@ export default async function ExpensesPage({
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+              <div className="max-h-[560px] overflow-y-auto overflow-x-hidden pr-1">
+                <table className="responsive-data-table w-full border-collapse text-left text-sm">
                   <thead className="text-[11px] text-[#94a3b8]">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Expense</th>
@@ -339,9 +341,9 @@ export default async function ExpensesPage({
                         className="transition hover:bg-[#635bff]/[0.04]"
                         key={expense.id}
                       >
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Expense">
                           <Link
-                            className="font-semibold text-accent hover:underline"
+                            className="break-words font-semibold text-accent hover:underline"
                             href={`/dashboard/expenses/${expense.id}`}
                           >
                             {expense.category}
@@ -350,22 +352,22 @@ export default async function ExpensesPage({
                             {dateFormatter(expense.date)}
                           </p>
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Vendor">
                           {expense.vendor || "No vendor"}
                           <p className="mt-1 text-muted-foreground">
                             {expense.notes || "No notes"}
                           </p>
                         </td>
-                        <td className="px-5 py-4 align-top capitalize">
+                        <td className="px-5 py-4 align-top capitalize" data-label="Method">
                           {(expense.paymentMethod || "not set").replaceAll(
                             "_",
                             " ",
                           )}
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Receipt">
                           {expense.attachmentPath ? (
                             <Link
-                              className="font-semibold text-accent hover:underline"
+                              className="break-words font-semibold text-accent hover:underline"
                               href={`/dashboard/expenses/${expense.id}/receipt`}
                               target="_blank"
                             >
@@ -377,13 +379,13 @@ export default async function ExpensesPage({
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Owner">
                           {expense.createdBy?.name ?? "System"}
                         </td>
-                        <td className="px-5 py-4 align-top">
+                        <td className="px-5 py-4 align-top" data-label="Status">
                           <StatusBadge status={expense.status} />
                         </td>
-                        <td className="px-5 py-4 text-right align-top font-semibold">
+                        <td className="px-5 py-4 text-right align-top font-semibold" data-label="Amount">
                           {money.format(Number(expense.amount))}
                         </td>
                       </tr>

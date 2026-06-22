@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ProductForm } from "@/app/_frontend/components/dashboard/product-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type ProductsPageProps = {
   searchParams: Promise<{
@@ -68,7 +70,7 @@ function MetricCard({
       <div
         className={`premium-stat-icon mb-2 grid size-7 place-items-center rounded-lg text-[10.5px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="font-mono text-[20px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -84,7 +86,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">BX</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="box" /></div>
       </div>
     </div>
   );
@@ -231,7 +233,7 @@ export default async function ProductsPage({
         />
       </section>
 
-      <section className="relative z-[1] grid gap-3 xl:grid-cols-[0.88fr_1.12fr]">
+      <section className="relative z-[1] grid items-start gap-3 xl:grid-cols-[0.88fr_1.12fr]">
         <div className="premium-card rounded-[16px] border p-3.5">
           <div className="mb-2.5 flex items-center justify-between gap-4">
             <h3 className="text-[13px] font-medium">New catalog item</h3>
@@ -240,7 +242,7 @@ export default async function ProductsPage({
           <ProductForm />
         </div>
 
-        <div className="premium-card overflow-hidden rounded-[16px] border p-3.5">
+        <div className="premium-card max-h-[760px] overflow-hidden rounded-[16px] border p-3.5">
           <div className="mb-2.5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h3 className="text-[13px] font-medium">
                 {search ? `Matches for "${search}"` : "Latest items"}
@@ -265,8 +267,8 @@ export default async function ProductsPage({
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[840px] border-collapse text-left text-xs">
+            <div className="max-h-[640px] overflow-y-auto overflow-x-hidden pr-1">
+              <table className="responsive-data-table w-full border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                     <th className="pb-2 pr-4 font-normal">Item</th>
@@ -287,7 +289,7 @@ export default async function ProductsPage({
                         className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={product.id}
                       >
-                        <td className="py-2 pr-4 align-top">
+                        <td className="py-2 pr-4 align-top" data-label="Item">
                           <Link
                             className="font-medium text-[#185fa5]"
                             href={`/dashboard/products/${product.id}`}
@@ -298,10 +300,10 @@ export default async function ProductsPage({
                             {product.sku || product.category || "No SKU"}
                           </p>
                         </td>
-                        <td className="py-2 pr-4 align-top capitalize">
+                        <td className="py-2 pr-4 align-top capitalize" data-label="Type">
                           {product.type}
                         </td>
-                        <td className="py-2 pr-4 text-right align-top">
+                        <td className="py-2 pr-4 text-right align-top" data-label="Price">
                           <p className="font-mono font-medium">
                             {money.format(Number(product.salePrice))}
                           </p>
@@ -309,7 +311,7 @@ export default async function ProductsPage({
                             Cost {money.format(Number(product.costPrice))}
                           </p>
                         </td>
-                        <td className="py-2 pr-4 text-right align-top">
+                        <td className="py-2 pr-4 text-right align-top" data-label="Stock">
                           {product.type === "service" ? (
                             <span className="text-muted-foreground">
                               Service
@@ -332,13 +334,13 @@ export default async function ProductsPage({
                             </div>
                           )}
                         </td>
-                        <td className="py-2 pr-4 text-right align-top font-mono">
+                        <td className="py-2 pr-4 text-right align-top font-mono" data-label="Tax">
                           {decimalText(product.taxRate)}%
                         </td>
-                        <td className="py-2 pr-4 text-right align-top font-mono">
+                        <td className="py-2 pr-4 text-right align-top font-mono" data-label="Used">
                           {product._count.invoiceItems}
                         </td>
-                        <td className="py-2 text-right align-top">
+                        <td className="py-2 text-right align-top" data-label="Status">
                           <StatusBadge status={product.status} />
                         </td>
                       </tr>

@@ -10,12 +10,12 @@ import { InvoiceForm } from "@/app/_frontend/components/dashboard/invoice-form";
 import { PaymentForm } from "@/app/_frontend/components/dashboard/payment-form";
 import { PrintButton } from "@/app/_frontend/components/dashboard/print-button";
 import { RefundForm } from "@/app/_frontend/components/dashboard/refund-form";
-import { SendInvoiceEmailForm } from "@/app/_frontend/components/dashboard/send-invoice-email-form";
 import { requireUser } from "@/app/_backend/lib/auth/session";
 import { buildInvoiceCommunicationTimeline } from "@/app/_backend/lib/communication-timeline";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import { hasCompleteEmailSettings } from "@/app/_backend/lib/email-settings";
 import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
+import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
+
 
 type InvoiceDetailPageProps = {
   params: Promise<{
@@ -235,7 +235,7 @@ function StatCard({
       <div
         className={`premium-stat-icon mb-2.5 grid size-8 place-items-center rounded-lg text-[11px] font-semibold ${toneClasses[tone]}`}
       >
-        {label.slice(0, 2).toUpperCase()}
+        <AppIcon className="size-4" name={metricIconForLabel(label)} />
       </div>
       <p className="font-mono text-[20px] font-medium leading-none">{value}</p>
       <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
@@ -251,7 +251,7 @@ function PremiumVisual() {
         <div className="premium-visual-floor" />
         <div className="premium-visual-sheet" />
         <div className="premium-visual-cube" />
-        <div className="premium-visual-coin">INV</div>
+        <div className="premium-visual-coin"><AppIcon className="size-5" name="invoice" /></div>
       </div>
     </div>
   );
@@ -372,7 +372,7 @@ export default async function InvoiceDetailPage({
     .map((item) => item.productId)
     .filter((productId): productId is string => Boolean(productId));
 
-  const [customers, products, templates, emailSettings] = await Promise.all([
+  const [customers, products, templates] = await Promise.all([
     prisma.customer.findMany({
       orderBy: {
         name: "asc",
@@ -435,16 +435,6 @@ export default async function InvoiceDetailPage({
         businessId: user.businessId,
       },
     }),
-    prisma.businessEmailSetting.findUnique({
-      select: {
-        fromEmail: true,
-        smtpHost: true,
-        smtpPort: true,
-      },
-      where: {
-        businessId: user.businessId,
-      },
-    }),
   ]);
 
   const formProducts = products.map((product) => ({
@@ -480,7 +470,6 @@ export default async function InvoiceDetailPage({
   const isPosInvoice = invoice.invoiceType === "pos";
   const latestEmail = invoice.emailSends[0] ?? null;
   const latestPayment = invoice.payments[0] ?? null;
-  const canSendEmail = hasCompleteEmailSettings(emailSettings);
   const timelineEntries = buildInvoiceCommunicationTimeline(
     invoice,
     user.business.currency,
@@ -610,8 +599,8 @@ export default async function InvoiceDetailPage({
         <StatCard
           detail="Latest send status"
           label="Email"
-          tone={latestEmail?.status === "sent" ? "green" : "amber"}
-          value={latestEmail?.status ?? "Not ready"}
+          tone={latestEmail ? "blue" : "amber"}
+          value={latestEmail ? "Draft ready" : "Not prepared"}
         />
       </section>
 
@@ -666,8 +655,8 @@ export default async function InvoiceDetailPage({
                 title="No payments yet"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-collapse text-left text-xs">
+              <div className="max-h-[420px] overflow-y-auto overflow-x-hidden">
+                <table className="responsive-data-table w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                       <th className="px-4 pb-2 font-normal">Date</th>
@@ -684,16 +673,16 @@ export default async function InvoiceDetailPage({
                         className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={payment.id}
                       >
-                        <td className="px-4 py-2.5 align-top">
+                        <td className="px-4 py-2.5 align-top" data-label="Date">
                           {dateFormatter(payment.paymentDate)}
                         </td>
-                        <td className="px-4 py-2.5 align-top capitalize">
+                        <td className="px-4 py-2.5 align-top capitalize" data-label="Method">
                           {payment.paymentMethod.replaceAll("_", " ")}
                         </td>
-                        <td className="px-4 py-2.5 align-top text-muted-foreground">
+                        <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Notes">
                           {payment.notes || "No notes"}
                         </td>
-                        <td className="px-4 py-2.5 text-right align-top font-mono font-medium">
+                        <td className="px-4 py-2.5 text-right align-top font-mono font-medium" data-label="Amount">
                           {money.format(Number(payment.amount))}
                         </td>
                       </tr>
@@ -732,8 +721,8 @@ export default async function InvoiceDetailPage({
                 title="No refunds yet"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+              <div className="max-h-[420px] overflow-y-auto overflow-x-hidden">
+                <table className="responsive-data-table w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                       <th className="px-4 pb-2 font-normal">Refund</th>
@@ -751,7 +740,7 @@ export default async function InvoiceDetailPage({
                         className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                         key={refund.id}
                       >
-                        <td className="px-4 py-2.5 align-top">
+                        <td className="px-4 py-2.5 align-top" data-label="Refund">
                           <p className="font-medium">
                             {refund.refundNumber}
                           </p>
@@ -765,13 +754,13 @@ export default async function InvoiceDetailPage({
                               "Unknown user"}
                           </p>
                         </td>
-                        <td className="px-4 py-2.5 align-top text-muted-foreground">
+                        <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Date">
                           {dateFormatter(refund.refundDate)}
                         </td>
-                        <td className="px-4 py-2.5 align-top capitalize">
+                        <td className="px-4 py-2.5 align-top capitalize" data-label="Method">
                           {refund.refundMethod.replaceAll("_", " ")}
                         </td>
-                        <td className="px-4 py-2.5 align-top text-muted-foreground">
+                        <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Items">
                           {refund.items.map((item) => (
                             <p key={item.id}>
                               {item.itemName} x {decimalText(item.quantity)}
@@ -783,7 +772,7 @@ export default async function InvoiceDetailPage({
                             </p>
                           ))}
                         </td>
-                        <td className="px-4 py-2.5 text-right align-top font-mono font-medium">
+                        <td className="px-4 py-2.5 text-right align-top font-mono font-medium" data-label="Amount">
                           {money.format(Number(refund.amount))}
                         </td>
                       </tr>
@@ -809,7 +798,7 @@ export default async function InvoiceDetailPage({
 
       <CommunicationTimeline
         className="order-9"
-        emptyDescription="Prepared emails, send attempts, payments, and notes for this invoice will appear here."
+        emptyDescription="Prepared email drafts, payments, and notes for this invoice will appear here."
         emptyTitle="No invoice activity yet"
         entries={timelineEntries}
         title="Invoice communication history"
@@ -827,12 +816,12 @@ export default async function InvoiceDetailPage({
         </div>
         {invoice.emailSends.length === 0 ? (
           <EmptyState
-            description="Prepare a send-ready invoice email before SMTP delivery is connected."
+            description="Prepare a copy-ready invoice email draft and attach the PDF from your email app."
             title="No prepared emails yet"
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+          <div className="max-h-[420px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                   <th className="px-4 pb-2 font-normal">Recipient</th>
@@ -842,9 +831,6 @@ export default async function InvoiceDetailPage({
                   <th className="px-4 pb-2 text-right font-normal">
                     Status
                   </th>
-                  <th className="px-4 pb-2 text-right font-normal">
-                    Action
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -853,7 +839,7 @@ export default async function InvoiceDetailPage({
                     className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                     key={emailSend.id}
                   >
-                    <td className="px-4 py-2.5 align-top">
+                    <td className="px-4 py-2.5 align-top" data-label="Recipient">
                       <p className="font-medium">
                         {emailSend.recipientEmail}
                       </p>
@@ -863,15 +849,15 @@ export default async function InvoiceDetailPage({
                           : "No CC"}
                       </p>
                     </td>
-                    <td className="px-4 py-2.5 align-top">
+                    <td className="px-4 py-2.5 align-top" data-label="Subject">
                       {emailSend.subject}
                     </td>
-                    <td className="px-4 py-2.5 align-top text-muted-foreground">
+                    <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Prepared by">
                       {emailSend.createdBy?.name ||
                         emailSend.createdBy?.email ||
                         "Unknown user"}
                     </td>
-                    <td className="px-4 py-2.5 align-top text-muted-foreground">
+                    <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Date">
                       <p>{dateFormatter(emailSend.preparedAt)}</p>
                       {emailSend.sentAt ? (
                         <p className="mt-1">
@@ -884,17 +870,10 @@ export default async function InvoiceDetailPage({
                         </p>
                       ) : null}
                     </td>
-                    <td className="px-4 py-2.5 text-right align-top">
+                    <td className="px-4 py-2.5 text-right align-top" data-label="Status">
                       <StatusBadge tone={emailSend.status}>
                         {emailSend.status}
                       </StatusBadge>
-                    </td>
-                    <td className="px-4 py-2.5 text-right align-top">
-                      <SendInvoiceEmailForm
-                        canSend={canSendEmail}
-                        emailSendId={emailSend.id}
-                        status={emailSend.status}
-                      />
                     </td>
                   </tr>
                 ))}
@@ -910,8 +889,8 @@ export default async function InvoiceDetailPage({
           subtitle={`${invoice.inventoryMoves.length} records`}
           title="Stock impact"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+          <div className="max-h-[420px] overflow-y-auto overflow-x-hidden">
+            <table className="responsive-data-table w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                   <th className="px-4 pb-2 font-normal">Product</th>
@@ -931,23 +910,23 @@ export default async function InvoiceDetailPage({
                     className="border-b border-border transition last:border-0 hover:bg-[#635bff]/[0.04]"
                     key={movement.id}
                   >
-                    <td className="px-4 py-2.5 align-top">
+                    <td className="px-4 py-2.5 align-top" data-label="Product">
                       <p className="font-medium">{movement.product.name}</p>
                       <p className="mt-1 text-[10.5px] text-[#94a3b8]">
                         {movement.product.sku || "No SKU"}
                       </p>
                     </td>
-                    <td className="px-4 py-2.5 align-top capitalize">
+                    <td className="px-4 py-2.5 align-top capitalize" data-label="Type">
                       {movementLabel(movement.type)}
                     </td>
-                    <td className="px-4 py-2.5 align-top text-muted-foreground">
+                    <td className="px-4 py-2.5 align-top text-muted-foreground" data-label="Date">
                       {dateFormatter(movement.createdAt)}
                     </td>
-                    <td className="px-4 py-2.5 text-right align-top font-mono font-medium">
+                    <td className="px-4 py-2.5 text-right align-top font-mono font-medium" data-label="Quantity">
                       {decimalText(movement.quantity)}{" "}
                       {movement.product.unit || "units"}
                     </td>
-                    <td className="px-4 py-2.5 text-right align-top font-mono">
+                    <td className="px-4 py-2.5 text-right align-top font-mono" data-label="Unit cost">
                       {money.format(Number(movement.unitCost))}
                     </td>
                   </tr>
@@ -1198,8 +1177,8 @@ export default async function InvoiceDetailPage({
           ) : null}
         </div>
 
-        <div className="overflow-x-auto py-4 print:overflow-visible">
-          <table className="w-full min-w-[760px] border-collapse text-left text-xs print:min-w-0">
+        <div className="max-h-[520px] overflow-y-auto overflow-x-hidden py-4 print:max-h-none print:overflow-visible">
+          <table className="print-static-table responsive-data-table w-full border-collapse text-left text-xs print:min-w-0">
             <thead>
               <tr className="border-b border-border text-[11px] text-[#94a3b8]">
                 <th className="px-3 pb-2 font-normal">Item</th>
@@ -1218,7 +1197,7 @@ export default async function InvoiceDetailPage({
                   className="border-b border-border transition print:break-inside-avoid last:border-0 hover:bg-[#635bff]/[0.04]"
                   key={item.id}
                 >
-                  <td className="px-3 py-2.5 align-top">
+                  <td className="px-3 py-2.5 align-top" data-label="Item">
                     <p className="font-medium">{item.itemName}</p>
                     {invoiceTemplateSettings.showItemDescriptions ? (
                       <p className="mt-1 text-[10.5px] text-[#94a3b8]">
@@ -1226,19 +1205,19 @@ export default async function InvoiceDetailPage({
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2.5 text-right align-top">
+                  <td className="px-3 py-2.5 text-right align-top" data-label="Qty">
                     {decimalInputValue(item.quantity)}
                   </td>
-                  <td className="px-3 py-2.5 text-right align-top">
+                  <td className="px-3 py-2.5 text-right align-top" data-label="Price">
                     {money.format(Number(item.unitPrice))}
                   </td>
-                  <td className="px-3 py-2.5 text-right align-top">
+                  <td className="px-3 py-2.5 text-right align-top" data-label="Discount">
                     {money.format(Number(item.discount))}
                   </td>
-                  <td className="px-3 py-2.5 text-right align-top">
+                  <td className="px-3 py-2.5 text-right align-top" data-label="Tax">
                     {money.format(Number(item.taxAmount))}
                   </td>
-                  <td className="px-3 py-2.5 text-right align-top font-mono font-medium">
+                  <td className="px-3 py-2.5 text-right align-top font-mono font-medium" data-label="Total">
                     {money.format(Number(item.lineTotal))}
                   </td>
                 </tr>
