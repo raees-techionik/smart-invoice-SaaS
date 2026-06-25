@@ -198,3 +198,69 @@ export function stringifyInvoiceTemplateSettings(
 ) {
   return JSON.stringify(settings);
 }
+
+export type TemplateRecommendation = {
+  layout: InvoiceTemplateLayout;
+  reason: string;
+  suggestedSettings: Partial<InvoiceTemplateSettings>;
+};
+
+export function recommendTemplateForBusiness(
+  category: string | null | undefined,
+): TemplateRecommendation | null {
+  if (!category) {
+    return null;
+  }
+
+  const lc = category.toLowerCase();
+
+  if (/\b(retail|shop|store|supermarket|grocery|boutique|pharmacy|mart)\b/.test(lc)) {
+    return {
+      layout: "compact",
+      reason: "Retail businesses benefit from compact, itemized invoice layouts.",
+      suggestedSettings: { density: "compact", layout: "compact", showItemDescriptions: false },
+    };
+  }
+
+  if (/\b(clinic|medical|doctor|hospital|health|dental|pharma|therapy|therapist)\b/.test(lc)) {
+    return {
+      layout: "classic",
+      reason: "Medical practices benefit from a formal classic layout with signature and stamp.",
+      suggestedSettings: { layout: "classic", showBusinessTaxNumber: true, showSignature: true, showStamp: true },
+    };
+  }
+
+  if (/\b(freelancer|freelance|consultant|consultancy|agency|design|marketing|software|tech|developer|development)\b/.test(lc)) {
+    return {
+      layout: "modern",
+      reason: "Freelancers and agencies benefit from modern layout with detailed item descriptions.",
+      suggestedSettings: { layout: "modern", showItemDescriptions: true, showStamp: false },
+    };
+  }
+
+  if (/\b(distributor|wholesale|wholesaler|import|export|supply|supplier|trading)\b/.test(lc)) {
+    return {
+      layout: "classic",
+      reason: "Wholesale and trading businesses benefit from formal classic layout with balance box.",
+      suggestedSettings: { layout: "classic", showBalanceBox: true, showBusinessTaxNumber: true },
+    };
+  }
+
+  if (/\b(restaurant|cafe|bakery|catering|food|eatery|kitchen)\b/.test(lc)) {
+    return {
+      layout: "compact",
+      reason: "Food businesses benefit from compact receipt-style invoice layouts.",
+      suggestedSettings: { density: "compact", layout: "compact", showSignature: false },
+    };
+  }
+
+  if (/\b(repair|workshop|mechanic|maintenance|garage)\b/.test(lc)) {
+    return {
+      layout: "classic",
+      reason: "Repair and workshop businesses benefit from classic layout with signature.",
+      suggestedSettings: { layout: "classic", showItemDescriptions: true, showSignature: true },
+    };
+  }
+
+  return null;
+}

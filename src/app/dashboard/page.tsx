@@ -444,6 +444,7 @@ export default async function DashboardPage() {
   const chartStartDate = recentMonths[0]?.date ?? new Date();
   const now = new Date();
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
   const [
     customerCount,
@@ -465,6 +466,7 @@ export default async function DashboardPage() {
     overdueInvoiceCount,
     thisMonthItems,
     debtorInvoices,
+    recentExpensesByCategory,
   ] = await Promise.all([
     prisma.customer.count({
       where: { businessId: user.businessId, status: "active" },
@@ -621,6 +623,14 @@ export default async function DashboardPage() {
         customerId: { not: null },
       },
     }),
+    prisma.expense.findMany({
+      select: { amount: true, category: true, date: true },
+      where: {
+        businessId: user.businessId,
+        status: "active",
+        date: { gte: startOfLastMonth },
+      },
+    }),
   ]);
 
   const totalSales = Number(finalizedSales._sum.grandTotal ?? 0);
@@ -744,6 +754,32 @@ export default async function DashboardPage() {
     }
   }
 
+  const thisMonthKey = getMonthKey(startOfThisMonth);
+  const lastMonthKey = getMonthKey(startOfLastMonth);
+  const thisMonthCatMap = new Map<string, number>();
+  const lastMonthCatMap = new Map<string, number>();
+  for (const expense of recentExpensesByCategory) {
+    const cat = expense.category?.trim() || "Uncategorized";
+    const amount = Number(expense.amount);
+    const key = getMonthKey(expense.date);
+    if (key === thisMonthKey) {
+      thisMonthCatMap.set(cat, (thisMonthCatMap.get(cat) ?? 0) + amount);
+    } else if (key === lastMonthKey) {
+      lastMonthCatMap.set(cat, (lastMonthCatMap.get(cat) ?? 0) + amount);
+    }
+  }
+  const categoryAnomalies: Array<{ category: string; increase: number }> = [];
+  for (const [cat, thisAmount] of thisMonthCatMap) {
+    const lastAmount = lastMonthCatMap.get(cat) ?? 0;
+    if (lastAmount > 0) {
+      const increase = ((thisAmount - lastAmount) / lastAmount) * 100;
+      if (increase >= 30) {
+        categoryAnomalies.push({ category: cat, increase });
+      }
+    }
+  }
+  categoryAnomalies.sort((a, b) => b.increase - a.increase);
+
   const insights: Array<{ message: string; tone: InsightTone }> = [];
 
   if (overdueInvoiceCount > 0) {
@@ -771,6 +807,12 @@ export default async function DashboardPage() {
     if (expenseChange >= 10) {
       insights.push({ message: `Expenses increased by ${expenseChange.toFixed(0)}% this month.`, tone: "warning" });
     }
+  }
+  if (categoryAnomalies[0]) {
+    insights.push({
+      message: `${categoryAnomalies[0].category} expenses are up ${categoryAnomalies[0].increase.toFixed(0)}% vs last month.`,
+      tone: "warning",
+    });
   }
   if (lowStockItems.length > 0) {
     insights.push({

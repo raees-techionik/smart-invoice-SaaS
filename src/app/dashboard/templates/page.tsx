@@ -9,7 +9,10 @@ import {
 import { InvoiceTemplateForm } from "@/app/_frontend/components/dashboard/invoice-template-form";
 import { requireTemplateManager } from "@/app/_backend/lib/auth/roles";
 import { prisma } from "@/app/_backend/lib/db/prisma";
-import { parseInvoiceTemplateSettings } from "@/app/_backend/lib/invoice-templates";
+import {
+  parseInvoiceTemplateSettings,
+  recommendTemplateForBusiness,
+} from "@/app/_backend/lib/invoice-templates";
 import { AppIcon, metricIconForLabel } from "@/app/_frontend/components/dashboard/app-icons";
 
 
@@ -145,7 +148,8 @@ function ActionButton({
 export default async function InvoiceTemplatesPage() {
   const user = await requireTemplateManager();
 
-  const templates = await prisma.invoiceTemplate.findMany({
+  const [templates, business] = await Promise.all([
+    prisma.invoiceTemplate.findMany({
     include: {
       _count: {
         select: {
@@ -153,19 +157,25 @@ export default async function InvoiceTemplatesPage() {
         },
       },
     },
-    orderBy: [
-      {
-        isDefault: "desc",
+      orderBy: [
+        {
+          isDefault: "desc",
+        },
+        {
+          updatedAt: "desc",
+        },
+      ],
+      where: {
+        businessId: user.businessId,
       },
-      {
-        updatedAt: "desc",
-      },
-    ],
-    where: {
-      businessId: user.businessId,
-    },
-  });
+    }),
+    prisma.business.findUnique({
+      select: { category: true },
+      where: { id: user.businessId },
+    }),
+  ]);
 
+  const recommendation = recommendTemplateForBusiness(business?.category);
   const defaultTemplate = templates.find((template) => template.isDefault);
   const parsedTemplates = templates.map((template) => ({
     ...template,
@@ -216,6 +226,24 @@ export default async function InvoiceTemplatesPage() {
           )}
         />
       </section>
+
+      {recommendation ? (
+        <section className="relative z-[1] rounded-[14px] border border-[#635bff]/25 bg-[#eef2ff] px-4 py-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4f46e5]">
+                Layout suggestion
+              </p>
+              <p className="mt-0.5 text-sm font-medium text-foreground">
+                {recommendation.reason}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-lg border border-[#635bff]/30 bg-white/80 px-3 py-1.5 text-[11.5px] font-semibold capitalize text-[#4f46e5]">
+              {recommendation.layout} layout recommended
+            </span>
+          </div>
+        </section>
+      ) : null}
 
       <section className="relative z-[1] grid items-start gap-3.5 xl:grid-cols-[0.82fr_1.18fr]">
         <div className="premium-card rounded-[16px] border p-4">

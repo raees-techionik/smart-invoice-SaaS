@@ -132,6 +132,7 @@ function errorTypeLabel(value: string) {
     customer_match_required: "Customer match required",
     duplicate_customer: "Duplicate customer",
     duplicate_expense: "Duplicate expense",
+    duplicate_file: "Duplicate file",
     duplicate_invoice: "Duplicate invoice",
     duplicate_product: "Duplicate product",
     insufficient_stock: "Insufficient stock",

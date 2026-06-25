@@ -758,10 +758,12 @@ async function findProductMatch(
   tx: Prisma.TransactionClient,
   {
     businessId,
+    category,
     name,
     sku,
   }: {
     businessId: string;
+    category?: string | null;
     name?: string | null;
     sku?: string | null;
   },
@@ -799,11 +801,22 @@ async function findProductMatch(
       const skuScore =
         productSku && normalizedMatchText(candidate.sku) === productSku ? 1 : 0;
       const nameScore = textSimilarity(productName, candidate.name);
-      const score = Math.max(skuScore, nameScore);
+      const categoryBonus =
+        category != null && candidate.category
+          ? textSimilarity(normalizedValue(category), candidate.category) * 0.12
+          : 0;
+      const baseScore = Math.max(skuScore, nameScore);
+      const score = Math.min(baseScore + categoryBonus, 1);
+      const reason =
+        skuScore === baseScore && skuScore > 0
+          ? "SKU"
+          : categoryBonus > 0.05
+            ? "name + category"
+            : "name similarity";
 
       return {
         candidate,
-        reason: skuScore === score && skuScore > 0 ? "SKU" : "name similarity",
+        reason,
         score,
       };
     })
@@ -1544,6 +1557,11 @@ async function processSingleImportFile(
     return { error: savedFile?.error ?? `Could not save ${file.name}.` };
   }
 
+  const existingHashDoc = await prisma.importedDocument.findFirst({
+    select: { importJobId: true },
+    where: { businessId, fileHash: savedFile.hash },
+  });
+
   const extraction = await extractImportFileContent({
     fileBuffer,
     fileName: file.name,
@@ -1601,6 +1619,17 @@ async function processSingleImportFile(
       },
     },
   });
+
+  if (existingHashDoc) {
+    await prisma.importError.create({
+      data: {
+        errorType: "duplicate_file",
+        importJobId: importJob.id,
+        message:
+          "This file was previously imported in another job. Review carefully before applying to avoid duplicate records.",
+      },
+    });
+  }
 
   return { jobId: importJob.id };
 }
@@ -2049,6 +2078,7 @@ export async function applyReviewedImportJob(formData: FormData) {
 
         const duplicateProduct = await findProductMatch(tx, {
           businessId: user.businessId,
+          category: productData.data.category,
           name: productData.data.name,
           sku: productData.data.sku,
         });
