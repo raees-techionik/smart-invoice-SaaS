@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import {
   applyReviewedImportJob,
+  skipImportJob,
   updateExtractedFields,
 } from "@/app/dashboard/imports/actions";
 import { requireUser } from "@/app/_backend/lib/auth/session";
@@ -113,7 +114,7 @@ function StatusBadge({ status }: { status: string }) {
         ? "border-amber-200 bg-amber-50 text-amber-800"
         : status === "failed"
           ? "border-red-200 bg-red-50 text-red-700"
-        : status === "ignored"
+        : status === "ignored" || status === "skipped"
           ? "border-border bg-muted text-muted-foreground"
           : "border-blue-200 bg-blue-50 text-blue-800";
 
@@ -400,6 +401,13 @@ export default async function ImportDetailPage({
     importJob.status === "imported" ||
     importJob.status === "imported_with_errors";
   const isRecordResultStatus = isAppliedJob || importJob.status === "failed";
+  const isSkippable =
+    !isAppliedJob &&
+    importJob.status !== "skipped" &&
+    importJob.status !== "ignored";
+  const hasDuplicateErrors = importJob.errors.some((e) =>
+    e.errorType.startsWith("duplicate_"),
+  );
   const errorSummary = Array.from(
     importJob.errors
       .reduce((summary, error) => {
@@ -432,13 +440,34 @@ export default async function ImportDetailPage({
           >
             Back to imports
           </Link>
-          {importJob.importType === "invoices" ? (
-            <Link
-              className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
-              href={`/dashboard/imports/${importJob.id}/xlsx`}
-            >
-              Download Excel
-            </Link>
+          <Link
+            className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium transition hover:bg-[#e6f1fb]"
+            href={`/dashboard/imports/${importJob.id}/xlsx`}
+          >
+            Download Excel
+          </Link>
+          {isSkippable ? (
+            <form action={skipImportJob}>
+              <input name="importJobId" type="hidden" value={importJob.id} />
+              <button
+                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-border bg-white px-3 text-[11.5px] font-medium text-muted-foreground transition hover:bg-red-50 hover:text-red-700"
+                type="submit"
+              >
+                Skip job
+              </button>
+            </form>
+          ) : null}
+          {hasDuplicateErrors && !isAppliedJob ? (
+            <form action={applyReviewedImportJob}>
+              <input name="importJobId" type="hidden" value={importJob.id} />
+              <input name="forceImport" type="hidden" value="true" />
+              <button
+                className="inline-flex h-[34px] items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-3 text-[11.5px] font-medium text-amber-800 transition hover:bg-amber-100"
+                type="submit"
+              >
+                Import as new
+              </button>
+            </form>
           ) : null}
           {canApplyReviewedJob ? (
             <form action={applyReviewedImportJob}>

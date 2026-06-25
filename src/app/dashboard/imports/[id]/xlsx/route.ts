@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { requireUser } from "@/app/_backend/lib/auth/session";
-import { buildInvoiceImportJobXlsx } from "@/app/_backend/lib/import-job-exports";
+import {
+  buildGenericImportJobXlsx,
+  buildInvoiceImportJobXlsx,
+} from "@/app/_backend/lib/import-job-exports";
+import { prisma } from "@/app/_backend/lib/db/prisma";
 
 export const runtime = "nodejs";
 
@@ -14,10 +18,23 @@ type ImportJobXlsxRouteProps = {
 export async function GET(_request: Request, { params }: ImportJobXlsxRouteProps) {
   const user = await requireUser();
   const { id } = await params;
-  const exportFile = await buildInvoiceImportJobXlsx(user.businessId, id);
+
+  const importJob = await prisma.importJob.findFirst({
+    select: { importType: true },
+    where: { businessId: user.businessId, id },
+  });
+
+  if (!importJob) {
+    return new NextResponse("Import job not found.", { status: 404 });
+  }
+
+  const exportFile =
+    importJob.importType === "invoices"
+      ? await buildInvoiceImportJobXlsx(user.businessId, id)
+      : await buildGenericImportJobXlsx(user.businessId, id);
 
   if (!exportFile) {
-    return new NextResponse("Invoice import export not found.", { status: 404 });
+    return new NextResponse("Export not available.", { status: 404 });
   }
 
   return new NextResponse(new Uint8Array(exportFile.buffer), {

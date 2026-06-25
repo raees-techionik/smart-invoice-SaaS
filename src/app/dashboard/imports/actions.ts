@@ -11,6 +11,8 @@ import { extractImportFileContent } from "@/app/_backend/lib/import-file-extract
 import {
   buildInitialImportedDocumentSeeds,
   documentTypes,
+  type DocumentType,
+  type ImportType,
   importTypes,
   isDocumentType,
   isImportType,
@@ -1036,6 +1038,7 @@ async function applyInvoiceDocuments(
     businessId,
     createdById,
     documents,
+    forceImport,
     importJobId,
     mappingBySource,
   }: {
@@ -1052,6 +1055,7 @@ async function applyInvoiceDocuments(
       }>;
       status: string;
     }>;
+    forceImport: boolean;
     importJobId: string;
     mappingBySource: Map<string, string>;
   },
@@ -1435,37 +1439,35 @@ async function applyInvoiceDocuments(
     }
 
     const invoiceDate = dateImportValue(firstRow.values.invoiceDate);
-    const duplicateInvoice = await findDuplicateInvoice(tx, {
-      businessId,
-      customerId: customer.id,
-      grandTotal,
-      importedInvoiceNumber,
-      invoiceDate,
-    });
+    if (!forceImport) {
+      const duplicateInvoice = await findDuplicateInvoice(tx, {
+        businessId,
+        customerId: customer.id,
+        grandTotal,
+        importedInvoiceNumber,
+        invoiceDate,
+      });
 
-    if (duplicateInvoice) {
-      errorCount += rows.length;
+      if (duplicateInvoice) {
+        errorCount += rows.length;
 
-      for (const row of rows) {
-        await createImportError(tx, {
-          errorType: "duplicate_invoice",
-          fieldName: duplicateInvoice.fieldName,
-          importJobId,
-          message: duplicateInvoice.message,
-          originalValue: duplicateInvoice.originalValue,
-          rowNumber: row.rowNumber,
-        });
-        await tx.importedDocument.update({
-          data: {
-            status: "failed",
-          },
-          where: {
-            id: row.document.id,
-          },
-        });
+        for (const row of rows) {
+          await createImportError(tx, {
+            errorType: "duplicate_invoice",
+            fieldName: duplicateInvoice.fieldName,
+            importJobId,
+            message: duplicateInvoice.message,
+            originalValue: duplicateInvoice.originalValue,
+            rowNumber: row.rowNumber,
+          });
+          await tx.importedDocument.update({
+            data: { status: "failed" },
+            where: { id: row.document.id },
+          });
+        }
+
+        continue;
       }
-
-      continue;
     }
 
     const invoiceNumber =
@@ -1521,36 +1523,25 @@ async function applyInvoiceDocuments(
   };
 }
 
-export async function createImportJob(
-  _state: ImportActionState,
-  formData: FormData,
-): Promise<ImportActionState> {
-  const user = await requireUser();
-  const importType = formValue(formData, "importType");
-  const documentType = formValue(formData, "documentType");
-  const file = formData.get("importFile");
-
-  if (!isImportType(importType)) {
-    return {
-      error: `Select a valid import type: ${importTypes.join(", ")}.`,
-    };
-  }
-
-  if (!isDocumentType(documentType)) {
-    return {
-      error: `Select a valid document type: ${documentTypes.join(", ")}.`,
-    };
-  }
-
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Choose a file to import." };
-  }
-
+async function processSingleImportFile(
+  file: File,
+  {
+    businessId,
+    createdById,
+    documentType,
+    importType,
+  }: {
+    businessId: string;
+    createdById: string;
+    documentType: DocumentType;
+    importType: ImportType;
+  },
+) {
   const fileBuffer = Buffer.from(await file.arrayBuffer());
   const savedFile = await saveImportSourceFile(file, fileBuffer);
 
   if (!savedFile || "error" in savedFile) {
-    return { error: savedFile?.error ?? "Could not save import file." };
+    return { error: savedFile?.error ?? `Could not save ${file.name}.` };
   }
 
   const extraction = await extractImportFileContent({
@@ -1578,8 +1569,8 @@ export async function createImportJob(
 
   const importJob = await prisma.importJob.create({
     data: {
-      businessId: user.businessId,
-      createdById: user.id,
+      businessId,
+      createdById,
       failedRows: needsReviewCount,
       fileName: file.name,
       fileType: file.type || "unknown",
@@ -1589,7 +1580,7 @@ export async function createImportJob(
       totalRows: extractedFields.length,
       documents: {
         create: documentSeeds.map((documentSeed) => ({
-          businessId: user.businessId,
+          businessId,
           confidenceScore: documentSeed.confidenceScore.toString(),
           documentType,
           extractedText: documentSeed.extractedText,
@@ -1611,8 +1602,64 @@ export async function createImportJob(
     },
   });
 
+  return { jobId: importJob.id };
+}
+
+export async function createImportJob(
+  _state: ImportActionState,
+  formData: FormData,
+): Promise<ImportActionState> {
+  const user = await requireUser();
+  const importType = formValue(formData, "importType");
+  const documentType = formValue(formData, "documentType");
+  const rawFiles = formData.getAll("importFile");
+  const files = rawFiles.filter(
+    (f): f is File => f instanceof File && f.size > 0,
+  );
+
+  if (!isImportType(importType)) {
+    return { error: `Select a valid import type: ${importTypes.join(", ")}.` };
+  }
+
+  if (!isDocumentType(documentType)) {
+    return { error: `Select a valid document type: ${documentTypes.join(", ")}.` };
+  }
+
+  if (files.length === 0) {
+    return { error: "Choose at least one file to import." };
+  }
+
+  const context = {
+    businessId: user.businessId,
+    createdById: user.id,
+    documentType: documentType as DocumentType,
+    importType: importType as ImportType,
+  };
+
+  if (files.length === 1 && files[0]) {
+    const result = await processSingleImportFile(files[0], context);
+    if ("error" in result) return { error: result.error };
+    revalidatePath("/dashboard/imports");
+    redirect(`/dashboard/imports/${result.jobId}`);
+  }
+
+  const errors: string[] = [];
+  for (const file of files) {
+    const result = await processSingleImportFile(file, context);
+    if ("error" in result) errors.push(result.error ?? file.name);
+  }
+
   revalidatePath("/dashboard/imports");
-  redirect(`/dashboard/imports/${importJob.id}`);
+
+  if (errors.length > 0) {
+    redirect(
+      `/dashboard/imports?error=${encodeURIComponent(
+        `${files.length - errors.length} of ${files.length} files created successfully. Errors: ${errors.join("; ")}`,
+      )}`,
+    );
+  }
+
+  redirect("/dashboard/imports");
 }
 
 export async function updateExtractedFields(formData: FormData) {
@@ -1746,9 +1793,26 @@ export async function updateExtractedFields(formData: FormData) {
   revalidatePath(`/dashboard/imports/${importJobId}`);
 }
 
+export async function skipImportJob(formData: FormData) {
+  const user = await requireUser();
+  const importJobId = formValue(formData, "importJobId");
+
+  if (!importJobId) {
+    return;
+  }
+
+  await prisma.importJob.updateMany({
+    data: { status: "skipped" },
+    where: { businessId: user.businessId, id: importJobId },
+  });
+
+  revalidatePath(`/dashboard/imports/${importJobId}`);
+}
+
 export async function applyReviewedImportJob(formData: FormData) {
   const user = await requireUser();
   const importJobId = formValue(formData, "importJobId");
+  const forceImport = formValue(formData, "forceImport") === "true";
 
   if (!importJobId) {
     return;
@@ -1835,6 +1899,7 @@ export async function applyReviewedImportJob(formData: FormData) {
         businessId: user.businessId,
         createdById: user.id,
         documents: importJob.documents,
+        forceImport,
         importJobId,
         mappingBySource,
       });
@@ -2050,33 +2115,31 @@ export async function applyReviewedImportJob(formData: FormData) {
         }
 
         const expenseAmount = new Prisma.Decimal(expenseData.data.amount);
-        const duplicateExpense = await findDuplicateExpense(tx, {
-          amount: expenseAmount,
-          businessId: user.businessId,
-          category: expenseData.data.category,
-          date: expenseData.data.date,
-          vendor: expenseData.data.vendor,
-        });
+        if (!forceImport) {
+          const duplicateExpense = await findDuplicateExpense(tx, {
+            amount: expenseAmount,
+            businessId: user.businessId,
+            category: expenseData.data.category,
+            date: expenseData.data.date,
+            vendor: expenseData.data.vendor,
+          });
 
-        if (duplicateExpense) {
-          errorCount += 1;
-          await createImportError(tx, {
-            errorType: "duplicate_expense",
-            fieldName: duplicateExpense.fieldName,
-            importJobId,
-            message: duplicateExpense.message,
-            originalValue: duplicateExpense.originalValue,
-            rowNumber,
-          });
-          await tx.importedDocument.update({
-            data: {
-              status: "failed",
-            },
-            where: {
-              id: document.id,
-            },
-          });
-          continue;
+          if (duplicateExpense) {
+            errorCount += 1;
+            await createImportError(tx, {
+              errorType: "duplicate_expense",
+              fieldName: duplicateExpense.fieldName,
+              importJobId,
+              message: duplicateExpense.message,
+              originalValue: duplicateExpense.originalValue,
+              rowNumber,
+            });
+            await tx.importedDocument.update({
+              data: { status: "failed" },
+              where: { id: document.id },
+            });
+            continue;
+          }
         }
 
         await tx.expense.create({

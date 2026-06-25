@@ -114,6 +114,81 @@ function workbookBuffer(sheets: ExportSheet[]) {
   }) as Buffer;
 }
 
+export async function buildGenericImportJobXlsx(
+  businessId: string,
+  importJobId: string,
+): Promise<{ buffer: Buffer; filename: string } | null> {
+  const importJob = await prisma.importJob.findFirst({
+    include: {
+      documents: {
+        include: {
+          fields: { orderBy: { createdAt: "asc" } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      errors: { orderBy: { createdAt: "asc" } },
+    },
+    where: { businessId, id: importJobId },
+  });
+
+  if (!importJob) {
+    return null;
+  }
+
+  const fieldRows = importJob.documents.flatMap((document, docIndex) =>
+    document.fields.map((field, fieldIndex) => ({
+      confidence: Math.round(Number(field.confidence) * 100),
+      corrected_value: field.correctedValue,
+      document_name: document.originalFileName,
+      extracted_value: field.extractedValue,
+      field_name: field.fieldName,
+      field_status: field.status,
+      row: docIndex + 1,
+      sort: fieldIndex + 1,
+    })),
+  );
+
+  const errorRows = importJob.errors.map((error) => ({
+    error_type: error.errorType.replaceAll("_", " "),
+    field_name: error.fieldName,
+    message: error.message,
+    original_value: error.originalValue,
+    row_number: error.rowNumber,
+  }));
+
+  const slug = importJob.fileName
+    .trim()
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const filename = `${slug || "import"}-error-report-${dateStamp()}.xlsx`;
+
+  const sheets: ExportSheet[] = [
+    {
+      columns: [
+        "row",
+        "document_name",
+        "field_name",
+        "extracted_value",
+        "corrected_value",
+        "confidence",
+        "field_status",
+        "sort",
+      ],
+      name: "Extracted Fields",
+      rows: fieldRows,
+    },
+    {
+      columns: ["row_number", "field_name", "error_type", "original_value", "message"],
+      name: "Errors",
+      rows: errorRows,
+    },
+  ];
+
+  return { buffer: workbookBuffer(sheets), filename };
+}
+
 export async function buildInvoiceImportJobXlsx(
   businessId: string,
   importJobId: string,

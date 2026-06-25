@@ -84,13 +84,15 @@ export function ImportUploadForm() {
         <input
           accept=".csv,.txt,.pdf,.png,.jpg,.jpeg,.webp,.xlsx,application/pdf,image/jpeg,image/png,image/webp,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           className="rounded-[10px] border border-dashed border-white/70 bg-white/65 px-3 py-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#635bff] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#635bff]/60"
+          multiple
           name="importFile"
           required
           type="file"
         />
         <span className="text-xs font-normal leading-5 text-muted-foreground">
-          Upload PDF, image, CSV, TXT, or XLSX files up to 10 MB. CSV/XLSX files
-          are parsed into review rows; PDF text and image OCR are extracted into
+          Upload one or multiple PDF, image, CSV, TXT, or XLSX files up to 10 MB
+          each. Multiple files each get their own review job. CSV/XLSX files are
+          parsed into review rows; PDF text and image OCR are extracted into
           editable fields before saving.
         </span>
       </label>
