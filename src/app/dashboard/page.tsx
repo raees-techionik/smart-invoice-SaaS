@@ -4,6 +4,8 @@ import { requireUser } from "@/app/_backend/lib/auth/session";
 import { prisma } from "@/app/_backend/lib/db/prisma";
 import { AppIcon, type AppIconName } from "@/app/_frontend/components/dashboard/app-icons";
 
+type InsightTone = "alert" | "info" | "positive" | "warning";
+
 const quickActions = [
   { href: "/dashboard/invoices", icon: "plus", label: "New invoice" },
   { href: "/dashboard/customers", icon: "users", label: "Customer" },
@@ -392,11 +394,56 @@ function RevenueSplitCard({
   );
 }
 
+function InsightsCard({
+  insights,
+}: {
+  insights: Array<{ message: string; tone: InsightTone }>;
+}) {
+  const toneDot: Record<InsightTone, string> = {
+    alert: "bg-[#f43f5e]",
+    info: "bg-[#635bff]",
+    positive: "bg-[#00a884]",
+    warning: "bg-[#f59e0b]",
+  };
+  const toneText: Record<InsightTone, string> = {
+    alert: "text-[#a32d2d]",
+    info: "text-[#185fa5]",
+    positive: "text-[#3b6d11]",
+    warning: "text-[#854f0b]",
+  };
+  const toneRow: Record<InsightTone, string> = {
+    alert: "bg-[#fcebeb]",
+    info: "bg-[#e6f1fb]",
+    positive: "bg-[#eaf3de]",
+    warning: "bg-[#faeeda]",
+  };
+
+  return (
+    <Card subtitle="Rule-based" title="Business insights">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {insights.map((insight, index) => (
+          <div
+            className={`flex items-start gap-2.5 rounded-[10px] px-3 py-2.5 ${toneRow[insight.tone]}`}
+            key={index}
+          >
+            <span className={`mt-[5px] size-1.5 shrink-0 rounded-full ${toneDot[insight.tone]}`} />
+            <p className={`text-[11.5px] leading-snug ${toneText[insight.tone]}`}>
+              {insight.message}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const money = currencyFormatter(user.business.currency);
   const recentMonths = getRecentMonths(6);
   const chartStartDate = recentMonths[0]?.date ?? new Date();
+  const now = new Date();
+  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
     customerCount,
@@ -415,6 +462,9 @@ export default async function DashboardPage() {
     monthlyPayments,
     monthlyExpenses,
     revenueSplitItems,
+    overdueInvoiceCount,
+    thisMonthItems,
+    debtorInvoices,
   ] = await Promise.all([
     prisma.customer.count({
       where: { businessId: user.businessId, status: "active" },
@@ -537,6 +587,40 @@ export default async function DashboardPage() {
         },
       },
     }),
+    prisma.invoice.count({
+      where: {
+        businessId: user.businessId,
+        status: "finalized",
+        balanceAmount: { gt: 0 },
+        dueDate: { lt: now },
+      },
+    }),
+    prisma.invoiceItem.findMany({
+      select: {
+        itemName: true,
+        lineTotal: true,
+      },
+      where: {
+        invoice: {
+          businessId: user.businessId,
+          status: "finalized",
+          invoiceDate: { gte: startOfThisMonth },
+        },
+      },
+    }),
+    prisma.invoice.findMany({
+      select: {
+        customerId: true,
+        balanceAmount: true,
+        customer: { select: { name: true } },
+      },
+      where: {
+        businessId: user.businessId,
+        status: "finalized",
+        balanceAmount: { gt: 0 },
+        customerId: { not: null },
+      },
+    }),
   ]);
 
   const totalSales = Number(finalizedSales._sum.grandTotal ?? 0);
@@ -623,6 +707,90 @@ export default async function DashboardPage() {
     { color: "#f43f5e", label: "Refunds", value: totalRefunds },
   ].filter((row) => row.value > 0 || row.label !== "Manual");
 
+  const thisMonthSales = monthlySales[monthlySales.length - 1] ?? 0;
+  const lastMonthSales = monthlySales[monthlySales.length - 2] ?? 0;
+  const thisMonthExpenseTotal = monthlyExpenseValues[monthlyExpenseValues.length - 1] ?? 0;
+  const lastMonthExpenseTotal = monthlyExpenseValues[monthlyExpenseValues.length - 2] ?? 0;
+
+  const itemTotalsMap = new Map<string, number>();
+  for (const item of thisMonthItems) {
+    itemTotalsMap.set(item.itemName, (itemTotalsMap.get(item.itemName) ?? 0) + Number(item.lineTotal));
+  }
+  let bestItemName: string | null = null;
+  let bestItemTotal = 0;
+  for (const [name, total] of itemTotalsMap) {
+    if (total > bestItemTotal) {
+      bestItemTotal = total;
+      bestItemName = name;
+    }
+  }
+
+  const debtorMap = new Map<string, { name: string; balance: number }>();
+  for (const invoice of debtorInvoices) {
+    if (!invoice.customerId || !invoice.customer) continue;
+    const existing = debtorMap.get(invoice.customerId);
+    if (existing) {
+      existing.balance += Number(invoice.balanceAmount);
+    } else {
+      debtorMap.set(invoice.customerId, { name: invoice.customer.name, balance: Number(invoice.balanceAmount) });
+    }
+  }
+  let topDebtorName: string | null = null;
+  let topDebtorBalance = 0;
+  for (const debtor of debtorMap.values()) {
+    if (debtor.balance > topDebtorBalance) {
+      topDebtorBalance = debtor.balance;
+      topDebtorName = debtor.name;
+    }
+  }
+
+  const insights: Array<{ message: string; tone: InsightTone }> = [];
+
+  if (overdueInvoiceCount > 0) {
+    insights.push({
+      message: `${overdueInvoiceCount} invoice${overdueInvoiceCount !== 1 ? "s are" : " is"} overdue.`,
+      tone: "alert",
+    });
+  }
+  if (estimatedProfit < 0) {
+    insights.push({
+      message: "Profit estimate is negative — expenses may be higher than sales.",
+      tone: "alert",
+    });
+  }
+  if (lastMonthSales > 0) {
+    const salesChange = ((thisMonthSales - lastMonthSales) / lastMonthSales) * 100;
+    if (salesChange >= 5) {
+      insights.push({ message: `Sales are ${salesChange.toFixed(0)}% higher than last month.`, tone: "positive" });
+    } else if (salesChange <= -5) {
+      insights.push({ message: `Sales are ${Math.abs(salesChange).toFixed(0)}% lower than last month.`, tone: "warning" });
+    }
+  }
+  if (lastMonthExpenseTotal > 0) {
+    const expenseChange = ((thisMonthExpenseTotal - lastMonthExpenseTotal) / lastMonthExpenseTotal) * 100;
+    if (expenseChange >= 10) {
+      insights.push({ message: `Expenses increased by ${expenseChange.toFixed(0)}% this month.`, tone: "warning" });
+    }
+  }
+  if (lowStockItems.length > 0) {
+    insights.push({
+      message: `${lowStockItems.length} product${lowStockItems.length !== 1 ? "s are" : " is"} low in stock.`,
+      tone: "warning",
+    });
+  }
+  if (bestItemName) {
+    insights.push({ message: `Best-selling product this month is ${bestItemName}.`, tone: "info" });
+  }
+  if (topDebtorName && topDebtorBalance > 0) {
+    insights.push({
+      message: `${topDebtorName} has the highest outstanding balance at ${money.format(topDebtorBalance)}.`,
+      tone: "info",
+    });
+  }
+  if (insights.length === 0) {
+    insights.push({ message: "Business is looking healthy. No active alerts.", tone: "positive" });
+  }
+
   return (
     <div className="relative flex flex-col gap-3.5">
       <PremiumVisual />
@@ -655,6 +823,10 @@ export default async function DashboardPage() {
           tone={estimatedProfit < 0 ? "red" : "blue"}
           value={money.format(estimatedProfit)}
         />
+      </section>
+
+      <section className="relative z-[1]">
+        <InsightsCard insights={insights} />
       </section>
 
       <section className="relative z-[1] grid gap-[11px] xl:grid-cols-[1.6fr_1fr]">
