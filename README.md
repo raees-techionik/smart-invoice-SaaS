@@ -25,6 +25,8 @@ Smart Invoice SaaS is a Next.js business invoicing application for managing cust
 - SQLite database for local development
 - Tesseract.js and PDF.js for OCR/PDF extraction
 - XLSX for Excel import/export
+- Node.js 22.13 or newer
+- pnpm 11.7
 
 ## Project Structure
 
@@ -69,37 +71,42 @@ tests/
 
 ## Setup
 
+Use Node.js 22.13 or newer. The OCR/PDF stack depends on packages that do not
+support older Node 20 releases.
+
 Install dependencies:
 
 ```bash
-npm install
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+pnpm install --frozen-lockfile
 ```
 
 Create a `.env` file in the project root:
 
 ```env
 DATABASE_URL="file:./dev.db"
-AUTH_SECRET="replace-with-a-secure-secret"
-EMAIL_SETTINGS_SECRET="replace-with-a-secure-secret"
 OCR_MAX_PDF_PAGES=5
 ```
+
+You can copy `.env.example` as a starting point.
 
 Generate the Prisma client:
 
 ```bash
-npx prisma generate
+pnpm prisma:generate
 ```
 
 Apply database migrations:
 
 ```bash
-npx prisma migrate deploy
+pnpm db:migrate
 ```
 
 Run the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open:
@@ -111,10 +118,12 @@ http://localhost:3000
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
+pnpm dev
+pnpm build
+pnpm start
+pnpm lint
+pnpm test
+pnpm verify
 ```
 
 ## Verification
@@ -122,8 +131,7 @@ npm run lint
 Before pushing changes, run:
 
 ```bash
-npm run lint
-npm run build
+pnpm verify
 ```
 
 ## Notes

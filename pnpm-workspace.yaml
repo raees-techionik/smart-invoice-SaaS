@@ -1,7 +1,11 @@
+packages:
+  - "."
+
 allowBuilds:
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  prisma: set this to true or false
-  sharp: set this to true or false
-  tesseract.js: set this to true or false
-  unrs-resolver: set this to true or false
+  "@napi-rs/canvas": true
+  "@prisma/client": true
+  "@prisma/engines": true
+  prisma: true
+  sharp: true
+  tesseract.js: true
+  unrs-resolver: true

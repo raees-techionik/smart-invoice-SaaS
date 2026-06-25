@@ -3,6 +3,13 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import * as XLSX from "xlsx";
 
+import {
+  inferSmartFieldsFromText,
+  inferSmartInvoiceLineItemsFromText,
+  type SmartExtractedField,
+  type SmartInvoiceLine,
+} from "@/app/_backend/lib/import-smart-logic";
+
 export const importTypes = [
   "customers",
   "products",
@@ -128,14 +135,6 @@ export type ImportedDocumentSeed = {
 export type ImportTemplateExport = {
   buffer: Buffer;
   filename: string;
-};
-
-type ParsedInvoiceLine = {
-  confidence: number;
-  itemDescription: string | null;
-  productName: string;
-  quantity: string;
-  unitPrice: string;
 };
 
 export function isImportType(value: string): value is ImportType {
@@ -590,32 +589,6 @@ export function buildInitialExtractedFields({
   return [...baseMetadataFields, ...placeholderFields(importType)];
 }
 
-function numericMatch(textContent: string, patterns: RegExp[]) {
-  for (const pattern of patterns) {
-    const match = textContent.match(pattern);
-    const value = match?.[1]?.replace(/[^\d.-]/g, "");
-
-    if (value) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
-function textMatch(textContent: string, patterns: RegExp[]) {
-  for (const pattern of patterns) {
-    const match = textContent.match(pattern);
-    const value = match?.[1]?.trim();
-
-    if (value) {
-      return value.replace(/\s{2,}/g, " ");
-    }
-  }
-
-  return null;
-}
-
 function inferredField(
   fieldName: string,
   extractedValue: string | null,
@@ -633,65 +606,6 @@ function inferredField(
   };
 }
 
-function decimalText(value: string | null | undefined) {
-  const normalizedValue = (value ?? "").replace(/[^\d.-]/g, "");
-
-  if (!normalizedValue || !/^\d+(\.\d{1,2})?$/.test(normalizedValue)) {
-    return null;
-  }
-
-  return normalizedValue;
-}
-
-function likelyInvoiceLineText(line: string) {
-  const ignoredLinePattern =
-    /\b(invoice|bill\s*to|customer|client|buyer|date|due|subtotal|sub\s*total|grand\s*total|total|tax|vat|gst|discount|balance|amount\s*due|terms|notes|thank\s*you|signature|authorized)\b/i;
-  const alphaCount = (line.match(/[a-z]/gi) ?? []).length;
-  const numberCount = (line.match(/\d+(?:,\d{3})*(?:\.\d{1,2})?/g) ?? [])
-    .length;
-
-  return alphaCount >= 2 && numberCount >= 2 && !ignoredLinePattern.test(line);
-}
-
-function normalizeProductName(value: string) {
-  return value
-    .replace(/^[#*\-\d.\s]+/, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
-function parseInvoiceLine(line: string, confidence: number): ParsedInvoiceLine | null {
-  const compactLine = line.replace(/\s+/g, " ").trim();
-
-  if (!likelyInvoiceLineText(compactLine)) {
-    return null;
-  }
-
-  const quantityPriceTotalMatch = compactLine.match(
-    /^(.+?)\s+(\d+(?:\.\d{1,2})?)\s+(?:x\s*)?(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)(?:\s+(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?))?$/i,
-  );
-
-  if (!quantityPriceTotalMatch) {
-    return null;
-  }
-
-  const productName = normalizeProductName(quantityPriceTotalMatch[1] ?? "");
-  const quantity = decimalText(quantityPriceTotalMatch[2]);
-  const unitPrice = decimalText(quantityPriceTotalMatch[3]);
-
-  if (!productName || !quantity || !unitPrice) {
-    return null;
-  }
-
-  return {
-    confidence,
-    itemDescription: productName,
-    productName,
-    quantity,
-    unitPrice,
-  };
-}
-
 function inferInvoiceLineItemsFromText({
   confidence,
   textContent,
@@ -699,29 +613,10 @@ function inferInvoiceLineItemsFromText({
   confidence?: number;
   textContent: string;
 }) {
-  const baseConfidence = Math.min(Math.max(confidence ?? 0.45, 0.3), 0.78);
-  const lines = textContent
-    .replace(/\r/g, "\n")
-    .split(/\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const parsedLines = lines
-    .map((line) => parseInvoiceLine(line, baseConfidence))
-    .filter((line): line is ParsedInvoiceLine => Boolean(line));
-  const uniqueLines = new Map<string, ParsedInvoiceLine>();
-
-  for (const line of parsedLines) {
-    const key = `${line.productName.toLowerCase()}|${line.quantity}|${line.unitPrice}`;
-
-    if (!uniqueLines.has(key)) {
-      uniqueLines.set(key, line);
-    }
-  }
-
-  return [...uniqueLines.values()].slice(0, 50);
+  return inferSmartInvoiceLineItemsFromText({ confidence, textContent });
 }
 
-function fieldsForInvoiceLine(line: ParsedInvoiceLine): ExtractedFieldInput[] {
+function fieldsForInvoiceLine(line: SmartInvoiceLine): ExtractedFieldInput[] {
   return [
     inferredField("productName", line.productName, line.confidence),
     inferredField("itemDescription", line.itemDescription, line.confidence - 0.05),
@@ -730,41 +625,13 @@ function fieldsForInvoiceLine(line: ParsedInvoiceLine): ExtractedFieldInput[] {
   ].filter((field): field is ExtractedFieldInput => Boolean(field));
 }
 
-function receiptVendorFallback(textContent: string) {
-  const ignoredLinePattern =
-    /\b(receipt|invoice|bill|date|time|total|amount|subtotal|tax|vat|gst|payment|method|cash|card|qty|quantity|price|page)\b/i;
-  const lines = textContent
-    .split(/\r?\n/)
-    .map((line) => line.replace(/\s{2,}/g, " ").trim())
-    .filter((line) => {
-      const alphaCount = (line.match(/[a-z]/gi) ?? []).length;
-
-      return (
-        alphaCount >= 3 &&
-        line.length <= 70 &&
-        !ignoredLinePattern.test(line) &&
-        !/^[\d\s.,:/#-]+$/.test(line)
-      );
-    });
-
-  return lines[0] ?? null;
-}
-
-function expenseCategoryFromText(textContent: string) {
-  const lowerText = textContent.toLowerCase();
-  const categoryPatterns: Array<[string, RegExp]> = [
-    ["Fuel", /\b(fuel|petrol|diesel|gas station|cng)\b/],
-    ["Rent", /\b(rent|lease)\b/],
-    ["Salary", /\b(salary|wage|payroll)\b/],
-    ["Utilities", /\b(utility|utilities|electricity|water|gas bill)\b/],
-    ["Internet", /\b(internet|broadband|wifi|data package)\b/],
-    ["Office supplies", /\b(stationery|supplies|paper|printer|ink)\b/],
-    ["Repairs", /\b(repair|maintenance|service charge)\b/],
-    ["Transport", /\b(transport|taxi|ride|delivery|courier|freight)\b/],
-    ["Meals", /\b(meal|food|restaurant|lunch|dinner|tea|coffee)\b/],
-  ];
-
-  return categoryPatterns.find(([, pattern]) => pattern.test(lowerText))?.[0] ?? null;
+function smartFieldToExtractedField(field: SmartExtractedField): ExtractedFieldInput {
+  return {
+    confidence: new Prisma.Decimal(field.confidence),
+    extractedValue: field.extractedValue,
+    fieldName: field.fieldName,
+    status: field.status,
+  };
 }
 
 function inferFieldsFromText({
@@ -776,116 +643,11 @@ function inferFieldsFromText({
   importType: ImportType;
   textContent: string;
 }): ExtractedFieldInput[] {
-  if (importType === "expenses") {
-    const baseConfidence = Math.min(Math.max(confidence ?? 0.5, 0.3), 0.86);
-    const compactText = textContent.replace(/\r/g, "\n");
-    const labeledVendor = textMatch(compactText, [
-      /(?:vendor|merchant|supplier|store|shop|paid\s*to)\s*[:#-]?\s*([^\n]+)/i,
-    ]);
-    const vendor = labeledVendor ?? receiptVendorFallback(compactText);
-    const vendorConfidence = labeledVendor ? baseConfidence - 0.1 : baseConfidence - 0.28;
-    const inferredCategory = expenseCategoryFromText(compactText);
-    const paymentMethod = textMatch(compactText, [
-      /\b(cash|card|credit card|debit card|bank transfer|easypaisa|jazzcash|cheque|check)\b/i,
-    ]);
-    const fields = [
-      inferredField(
-        "date",
-        textMatch(compactText, [
-          /\b([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\b/i,
-          /(?:receipt\s*)?date\s*[:#-]?\s*([0-9]{1,4}[\/.-][0-9]{1,2}[\/.-][0-9]{2,4})/i,
-          /paid\s*on\s*[:#-]?\s*([0-9]{1,4}[\/.-][0-9]{1,2}[\/.-][0-9]{2,4})/i,
-          /\b([0-9]{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+[0-9]{2,4})\b/i,
-        ]),
-        baseConfidence - 0.05,
-      ),
-      inferredField(
-        "vendor",
-        vendor,
-        vendorConfidence,
-      ),
-      inferredField(
-        "category",
-        inferredCategory,
-        baseConfidence - 0.2,
-      ),
-      inferredField(
-        "amount",
-        numericMatch(compactText, [
-          /(?:grand\s*)?total\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-          /(?:net\s*)?amount\s*(?:paid|due)?\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-          /balance\s*(?:due)?\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-          /amount\s*(?:paid|due)?\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-          /paid\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-        ]),
-        baseConfidence,
-      ),
-      inferredField("paymentMethod", paymentMethod, baseConfidence - 0.15),
-    ];
-
-    return fields.filter((field): field is ExtractedFieldInput => Boolean(field));
-  }
-
-  if (importType !== "invoices") {
-    return [];
-  }
-
-  const baseConfidence = Math.min(Math.max(confidence ?? 0.55, 0.35), 0.9);
-  const compactText = textContent.replace(/\r/g, "\n");
-  const fields = [
-    inferredField(
-      "invoiceNumber",
-      textMatch(compactText, [
-        /(?:invoice|inv|bill|receipt)\s*(?:no\.?|number|#)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9/-]{1,})/i,
-      ]),
-      baseConfidence,
-    ),
-    inferredField(
-      "invoiceDate",
-      textMatch(compactText, [
-        /(?:invoice\s*)?date\s*[:#-]?\s*([0-9]{1,4}[\/.-][0-9]{1,2}[\/.-][0-9]{2,4})/i,
-      ]),
-      baseConfidence - 0.05,
-    ),
-    inferredField(
-      "customerName",
-      textMatch(compactText, [
-        /(?:customer|client|buyer|bill\s*to)\s*[:#-]?\s*([^\n]+)/i,
-      ]),
-      baseConfidence - 0.1,
-    ),
-    inferredField(
-      "subtotal",
-      numericMatch(compactText, [
-        /subtotal\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-      ]),
-      baseConfidence - 0.05,
-    ),
-    inferredField(
-      "taxTotal",
-      numericMatch(compactText, [
-        /(?:tax|gst|vat)\s*(?:total|amount)?\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-      ]),
-      baseConfidence - 0.1,
-    ),
-    inferredField(
-      "discountTotal",
-      numericMatch(compactText, [
-        /discount\s*(?:total|amount)?\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-      ]),
-      baseConfidence - 0.1,
-    ),
-    inferredField(
-      "grandTotal",
-      numericMatch(compactText, [
-        /(?:grand\s*)?total\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-        /amount\s*due\s*[:#-]?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
-      ]),
-      baseConfidence,
-    ),
-  ];
-
-  return fields.filter((field): field is ExtractedFieldInput => Boolean(field));
+  return inferSmartFieldsFromText({
+    confidence,
+    importType,
+    textContent,
+  }).map(smartFieldToExtractedField);
 }
 
 export function extractedFieldsToParsedJson(fields: ExtractedFieldInput[]) {

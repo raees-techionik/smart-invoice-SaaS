@@ -9,6 +9,7 @@ import {
   type InvoiceActionState,
   updateDraftInvoice,
 } from "@/app/dashboard/invoices/actions";
+import { inferSmartInvoiceLineItemsFromText } from "@/app/_backend/lib/import-smart-logic";
 
 type CustomerOption = {
   id: string;
@@ -78,6 +79,12 @@ type DraftLine = {
 
 type DraftLineInput = Omit<DraftLine, "id">;
 
+type SmartLineCandidate = {
+  productName: string;
+  quantity: string;
+  unitPrice: string;
+};
+
 const initialState: InvoiceActionState = {};
 
 function todayDate() {
@@ -87,6 +94,117 @@ function todayDate() {
 function numericValue(value: string) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function decimalInput(value: string) {
+  const normalizedValue = value.replace(/,/g, "").replace(/[^\d.-]/g, "");
+
+  if (!normalizedValue || !Number.isFinite(Number(normalizedValue))) {
+    return null;
+  }
+
+  return normalizedValue;
+}
+
+function normalizeCatalogText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(bags|buckets|boxes|pieces|pcs|items|units)\b/g, (unit) =>
+      unit.replace(/s$/, ""),
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function tokenSet(value: string) {
+  return new Set(normalizeCatalogText(value).split(" ").filter(Boolean));
+}
+
+function productMatchScore(candidateName: string, product: ProductOption) {
+  const candidate = normalizeCatalogText(candidateName);
+  const productName = normalizeCatalogText(product.name);
+  const sku = normalizeCatalogText(product.sku ?? "");
+
+  if (!candidate || !productName) {
+    return 0;
+  }
+
+  if (candidate === productName || (sku && candidate === sku)) {
+    return 1;
+  }
+
+  if (productName.includes(candidate) || candidate.includes(productName)) {
+    return 0.9;
+  }
+
+  const candidateTokens = tokenSet(candidateName);
+  const productTokens = tokenSet(`${product.name} ${product.sku ?? ""}`);
+  const sharedTokenCount = [...candidateTokens].filter((token) =>
+    productTokens.has(token),
+  ).length;
+
+  if (sharedTokenCount === 0) {
+    return 0;
+  }
+
+  return (sharedTokenCount * 2) / (candidateTokens.size + productTokens.size);
+}
+
+function findBestProductMatch(candidateName: string, products: ProductOption[]) {
+  const [bestMatch] = products
+    .map((product) => ({
+      product,
+      score: productMatchScore(candidateName, product),
+    }))
+    .sort((left, right) => right.score - left.score);
+
+  return bestMatch && bestMatch.score >= 0.45 ? bestMatch.product : null;
+}
+
+function parseCasualSmartLine(line: string): SmartLineCandidate | null {
+  const compactLine = line.replace(/\s+/g, " ").trim();
+  const quantityFirstMatch = compactLine.match(
+    /^(\d+(?:\.\d{1,2})?)\s+(.+?)\s+(?:@|at|x|for)?\s*(?:rs\.?|pkr|usd|\$)?\s*([0-9][0-9,]*(?:\.\d{1,2})?)\s*(?:each|ea|per(?:\s+\w+)?)?$/i,
+  );
+
+  if (quantityFirstMatch) {
+    const quantity = decimalInput(quantityFirstMatch[1] ?? "");
+    const unitPrice = decimalInput(quantityFirstMatch[3] ?? "");
+    const productName = (quantityFirstMatch[2] ?? "").trim();
+
+    return quantity && unitPrice && productName
+      ? { productName, quantity, unitPrice }
+      : null;
+  }
+
+  return null;
+}
+
+function parseSmartTextLines(text: string) {
+  const extractedLines = inferSmartInvoiceLineItemsFromText({
+    confidence: 0.72,
+    textContent: text,
+  }).map((line) => ({
+    productName: line.productName,
+    quantity: line.quantity,
+    unitPrice: line.unitPrice,
+  }));
+  const casualLines = text
+    .replace(/\band\b/gi, "\n")
+    .split(/[\n;,]+/)
+    .map(parseCasualSmartLine)
+    .filter((line): line is SmartLineCandidate => Boolean(line));
+  const uniqueLines = new Map<string, SmartLineCandidate>();
+
+  for (const line of [...extractedLines, ...casualLines]) {
+    uniqueLines.set(
+      `${normalizeCatalogText(line.productName)}|${line.quantity}|${line.unitPrice}`,
+      line,
+    );
+  }
+
+  return [...uniqueLines.values()];
 }
 
 function quantityLabel(value: number | string) {
@@ -108,6 +226,18 @@ function initialLine(products: ProductOption[]): DraftLine {
     discount: "0",
     taxRate: products[0]?.taxRate ?? "0",
   };
+}
+
+function isUntouchedInitialLine(line: DraftLine, products: ProductOption[]) {
+  const firstProduct = products[0];
+
+  return (
+    line.productId === (firstProduct?.id ?? "") &&
+    line.quantity === "1" &&
+    line.unitPrice === (firstProduct?.salePrice ?? "0") &&
+    line.discount === "0" &&
+    line.taxRate === (firstProduct?.taxRate ?? "0")
+  );
 }
 
 function lineFromInput(line: DraftLineInput, index: number): DraftLine {
@@ -202,6 +332,9 @@ export function InvoiceForm({
       ? initialLines.map(lineFromInput)
       : [initialLine(products)],
   );
+  const [smartText, setSmartText] = useState("");
+  const [smartMessage, setSmartMessage] = useState<string | null>(null);
+  const [smartWarnings, setSmartWarnings] = useState<string[]>([]);
   const productsById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
     [products],
@@ -279,6 +412,65 @@ export function InvoiceForm({
         line.id === id ? { ...line, ...updates } : line,
       ),
     );
+  }
+
+  function applySmartText() {
+    const candidates = parseSmartTextLines(smartText);
+
+    if (!smartText.trim()) {
+      setSmartMessage("Paste invoice item text first.");
+      setSmartWarnings([]);
+      return;
+    }
+
+    if (candidates.length === 0) {
+      setSmartMessage(null);
+      setSmartWarnings([
+        "No line items found. Try one item per line with name, quantity, and price.",
+      ]);
+      return;
+    }
+
+    const parsedLines: DraftLine[] = [];
+    const warnings: string[] = [];
+    const idBase = Date.now();
+
+    candidates.forEach((candidate, index) => {
+      const product = findBestProductMatch(candidate.productName, products);
+
+      if (!product) {
+        warnings.push(`No catalog match for "${candidate.productName}".`);
+        return;
+      }
+
+      parsedLines.push({
+        discount: "0",
+        id: idBase + index,
+        productId: product.id,
+        quantity: candidate.quantity,
+        taxRate: product.taxRate,
+        unitPrice: candidate.unitPrice || product.salePrice,
+      });
+    });
+
+    if (parsedLines.length === 0) {
+      setSmartMessage(null);
+      setSmartWarnings(warnings);
+      return;
+    }
+
+    setLines((currentLines) =>
+      currentLines.length === 1 &&
+      isUntouchedInitialLine(currentLines[0], products)
+        ? parsedLines
+        : [...currentLines, ...parsedLines],
+    );
+    setSmartMessage(
+      `Added ${parsedLines.length} smart ${
+        parsedLines.length === 1 ? "line" : "lines"
+      }. Review before saving.`,
+    );
+    setSmartWarnings(warnings);
   }
 
   function selectTemplate(templateId: string) {
@@ -473,6 +665,47 @@ export function InvoiceForm({
           >
             Add line
           </button>
+        </div>
+        <div className="grid gap-2 border-b border-border bg-white/40 p-3 md:grid-cols-[1fr_auto] md:items-end">
+          <label className="grid gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+            Smart invoice text
+            <textarea
+              className="min-h-20 rounded-[8px] border border-white/70 bg-white/85 px-2.5 py-2 text-[12px] text-foreground outline-none transition focus:border-accent"
+              disabled={!canCreateInvoice}
+              onChange={(event) => {
+                setSmartText(event.target.value);
+                setSmartMessage(null);
+                setSmartWarnings([]);
+              }}
+              placeholder={"3 Cement Bag 50KG 1200 each\nPaint Bucket 2 2500"}
+              value={smartText}
+            />
+          </label>
+          <button
+            className="premium-button h-[34px] rounded-lg px-4 text-[11.5px] font-medium text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!canCreateInvoice || !smartText.trim()}
+            onClick={applySmartText}
+            type="button"
+          >
+            Parse into rows
+          </button>
+          {smartMessage || smartWarnings.length > 0 ? (
+            <div className="grid gap-1 md:col-span-2">
+              {smartMessage ? (
+                <p className="rounded-[7px] border border-[#639922]/30 bg-[#eaf3de] px-3 py-2 text-[11.5px] text-[#3b6d11]">
+                  {smartMessage}
+                </p>
+              ) : null}
+              {smartWarnings.map((warning) => (
+                <p
+                  className="rounded-[7px] border border-[#ba7517]/30 bg-[#faeeda] px-3 py-2 text-[11.5px] text-[#854f0b]"
+                  key={warning}
+                >
+                  {warning}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="grid min-w-0 gap-2 p-2">
           {lines.map((line, index) => {
