@@ -151,6 +151,7 @@ export default async function InvoicesPage() {
     finalizedInvoices,
     balanceAggregate,
     revenueAggregate,
+    recentItems,
   ] = await Promise.all([
     prisma.customer.findMany({
       orderBy: { name: "asc" },
@@ -202,7 +203,41 @@ export default async function InvoicesPage() {
       _sum: { grandTotal: true },
       where: { businessId: user.businessId, status: "finalized" },
     }),
+    prisma.invoiceItem.findMany({
+      orderBy: { invoice: { invoiceDate: "desc" } },
+      select: {
+        invoice: { select: { customerId: true } },
+        productId: true,
+        unitPrice: true,
+      },
+      take: 2000,
+      where: {
+        invoice: { businessId: user.businessId, status: "finalized" },
+        productId: { not: null },
+      },
+    }),
   ]);
+
+  const historyMap = new Map<
+    string,
+    { customerId: string; count: number; lastUnitPrice: string; productId: string }
+  >();
+  for (const item of recentItems) {
+    if (!item.productId || !item.invoice.customerId) continue;
+    const key = `${item.invoice.customerId}:${item.productId}`;
+    const existing = historyMap.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      historyMap.set(key, {
+        customerId: item.invoice.customerId,
+        count: 1,
+        lastUnitPrice: Number(item.unitPrice).toFixed(2),
+        productId: item.productId,
+      });
+    }
+  }
+  const customerHistory = [...historyMap.values()];
 
   const formProducts = products.map((product) => ({
     id: product.id,
@@ -257,6 +292,7 @@ export default async function InvoicesPage() {
       <section className="relative z-[1] grid items-start gap-[11px] 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
         <Card subtitle="Draft workspace" title="New invoice">
           <InvoiceForm
+            customerHistory={customerHistory}
             customers={customers}
             defaultNotes={user.business.defaultNotes ?? ""}
             defaultTerms={user.business.defaultTerms ?? ""}

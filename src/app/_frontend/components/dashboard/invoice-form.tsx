@@ -51,7 +51,15 @@ type TemplateOption = {
   };
 };
 
+type CustomerHistoryEntry = {
+  customerId: string;
+  count: number;
+  lastUnitPrice: string;
+  productId: string;
+};
+
 type InvoiceFormProps = {
+  customerHistory?: CustomerHistoryEntry[];
   customers: CustomerOption[];
   defaultNotes: string;
   defaultTerms: string;
@@ -288,6 +296,7 @@ function SaveDraftButton({
 }
 
 export function InvoiceForm({
+  customerHistory,
   customers,
   defaultNotes,
   defaultTerms,
@@ -335,9 +344,28 @@ export function InvoiceForm({
   const [smartText, setSmartText] = useState("");
   const [smartMessage, setSmartMessage] = useState<string | null>(null);
   const [smartWarnings, setSmartWarnings] = useState<string[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(initialCustomerId);
   const productsById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
     [products],
+  );
+  const historyByKey = useMemo(
+    () =>
+      new Map(
+        (customerHistory ?? []).map((h) => [
+          `${h.customerId}:${h.productId}`,
+          h,
+        ]),
+      ),
+    [customerHistory],
+  );
+  const customerPriorProducts = useMemo(
+    () =>
+      (customerHistory ?? [])
+        .filter((h) => h.customerId === selectedCustomerId)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 6),
+    [customerHistory, selectedCustomerId],
   );
 
   const totals = lines.reduce(
@@ -411,6 +439,24 @@ export function InvoiceForm({
       currentLines.map((line) =>
         line.id === id ? { ...line, ...updates } : line,
       ),
+    );
+  }
+
+  function addLineForProduct(productId: string, unitPrice: string) {
+    const product = productsById.get(productId);
+    if (!product) return;
+    const newLine: DraftLine = {
+      discount: "0",
+      id: Date.now(),
+      productId,
+      quantity: "1",
+      taxRate: product.taxRate,
+      unitPrice,
+    };
+    setLines((currentLines) =>
+      currentLines.length === 1 && isUntouchedInitialLine(currentLines[0], products)
+        ? [newLine]
+        : [...currentLines, newLine],
     );
   }
 
@@ -517,10 +563,11 @@ export function InvoiceForm({
           Customer
           <select
             className="h-[34px] rounded-[8px] border border-white/70 bg-white/85 px-2.5 text-[12px] text-foreground outline-none transition focus:border-accent"
-            defaultValue={initialCustomerId}
             disabled={!canCreateInvoice}
             name="customerId"
+            onChange={(event) => setSelectedCustomerId(event.target.value)}
             required
+            value={selectedCustomerId}
           >
             <option value="">Select customer</option>
             {customers.map((customer) => (
@@ -649,6 +696,33 @@ export function InvoiceForm({
         )}
       </div>
 
+      {customerPriorProducts.length > 0 ? (
+        <div className="rounded-[12px] border border-[#635bff]/20 bg-[#eef2ff] px-4 py-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4f46e5]">
+            Previously ordered by this customer
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {customerPriorProducts.map((h) => {
+              const product = productsById.get(h.productId);
+              if (!product) return null;
+              return (
+                <button
+                  className="inline-flex h-[30px] items-center gap-1.5 rounded-lg border border-[#635bff]/25 bg-white/80 px-3 text-[11px] font-medium text-[#4f46e5] transition hover:bg-white"
+                  key={h.productId}
+                  onClick={() => addLineForProduct(h.productId, h.lastUnitPrice)}
+                  type="button"
+                >
+                  {product.name}
+                  <span className="text-[10px] font-normal text-muted-foreground">
+                    × {h.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <div className="min-w-0 overflow-hidden rounded-[12px] border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
         <div className="flex flex-col gap-2 border-b border-border bg-white/55 p-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -732,6 +806,12 @@ export function InvoiceForm({
               isStockTracked &&
               numericValue(product.lowStockAlert) > 0 &&
               stockAvailable <= numericValue(product.lowStockAlert);
+            const gross = quantity * unitPrice;
+            const discountPct = gross > 0 ? discount / gross : 0;
+            const priceHint =
+              selectedCustomerId && line.productId
+                ? historyByKey.get(`${selectedCustomerId}:${line.productId}`)
+                : null;
 
             return (
               <div
@@ -828,6 +908,30 @@ export function InvoiceForm({
                       type="number"
                       value={line.unitPrice}
                     />
+                    {priceHint ? (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-[10.5px] text-muted-foreground">
+                          Last: {priceHint.lastUnitPrice}
+                        </span>
+                        {line.unitPrice !== priceHint.lastUnitPrice ? (
+                          <button
+                            className="text-[10.5px] font-medium text-[#185fa5] underline"
+                            onClick={() =>
+                              updateLine(line.id, {
+                                unitPrice: priceHint.lastUnitPrice,
+                              })
+                            }
+                            type="button"
+                          >
+                            Use last price
+                          </button>
+                        ) : (
+                          <span className="text-[10.5px] text-[#047857]">
+                            ✓ same as last
+                          </span>
+                        )}
+                      </span>
+                    ) : null}
                   </label>
                   <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Discount
@@ -842,6 +946,11 @@ export function InvoiceForm({
                       type="number"
                       value={line.discount}
                     />
+                    {discountPct > 0.4 ? (
+                      <span className="w-fit rounded-[6px] bg-[#faeeda] px-2 py-1 text-[10.5px] font-medium text-[#854f0b]">
+                        {Math.round(discountPct * 100)}% — unusually high discount
+                      </span>
+                    ) : null}
                   </label>
                   <label className="grid min-w-0 gap-1.5 text-[11.5px] font-medium text-muted-foreground">
                     Tax %

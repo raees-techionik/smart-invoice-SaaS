@@ -372,7 +372,7 @@ export default async function InvoiceDetailPage({
     .map((item) => item.productId)
     .filter((productId): productId is string => Boolean(productId));
 
-  const [customers, products, templates] = await Promise.all([
+  const [customers, products, templates, recentItems] = await Promise.all([
     prisma.customer.findMany({
       orderBy: {
         name: "asc",
@@ -435,7 +435,41 @@ export default async function InvoiceDetailPage({
         businessId: user.businessId,
       },
     }),
+    prisma.invoiceItem.findMany({
+      orderBy: { invoice: { invoiceDate: "desc" } },
+      select: {
+        invoice: { select: { customerId: true } },
+        productId: true,
+        unitPrice: true,
+      },
+      take: 2000,
+      where: {
+        invoice: { businessId: user.businessId, status: "finalized" },
+        productId: { not: null },
+      },
+    }),
   ]);
+
+  const historyMap = new Map<
+    string,
+    { customerId: string; count: number; lastUnitPrice: string; productId: string }
+  >();
+  for (const item of recentItems) {
+    if (!item.productId || !item.invoice.customerId) continue;
+    const key = `${item.invoice.customerId}:${item.productId}`;
+    const existing = historyMap.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      historyMap.set(key, {
+        customerId: item.invoice.customerId,
+        count: 1,
+        lastUnitPrice: Number(item.unitPrice).toFixed(2),
+        productId: item.productId,
+      });
+    }
+  }
+  const customerHistory = [...historyMap.values()];
 
   const formProducts = products.map((product) => ({
     id: product.id,
@@ -611,6 +645,7 @@ export default async function InvoiceDetailPage({
           title="Edit draft"
         >
           <InvoiceForm
+            customerHistory={customerHistory}
             customers={customers}
             defaultNotes={user.business.defaultNotes ?? ""}
             defaultTerms={user.business.defaultTerms ?? ""}
