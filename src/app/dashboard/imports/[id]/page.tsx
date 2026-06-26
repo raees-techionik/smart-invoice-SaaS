@@ -673,9 +673,16 @@ export default async function ImportDetailPage({
                                   type="hidden"
                                   value={field.id}
                                 />
-                                <p className="break-words text-sm font-semibold">
-                                  {field.fieldName}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="break-words text-sm font-semibold">
+                                    {field.fieldName}
+                                  </p>
+                                  {mappingBySource.has(field.fieldName) ? (
+                                    <span className="inline-flex rounded-[5px] border border-[#635bff]/25 bg-[#eef2ff] px-2 py-0.5 text-[9.5px] font-medium text-[#4f46e5]">
+                                      Learned
+                                    </span>
+                                  ) : null}
+                                </div>
                                 <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                   Source field
                                 </p>

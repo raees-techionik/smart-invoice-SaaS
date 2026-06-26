@@ -1567,7 +1567,7 @@ async function processSingleImportFile(
     fileName: file.name,
     fileType: file.type || "unknown",
   });
-  const documentSeeds = buildInitialImportedDocumentSeeds({
+  const rawDocumentSeeds = buildInitialImportedDocumentSeeds({
     documentType,
     extractionConfidence: extraction.confidence,
     extractionSource: extraction.source,
@@ -1579,9 +1579,39 @@ async function processSingleImportFile(
     importType,
     textContent: extraction.textContent,
   });
+
+  const learnedMappings = await prisma.documentFieldMapping.findMany({
+    select: { mappedField: true, sourceLabel: true, timesUsed: true },
+    where: { businessId },
+  });
+  const learnedBySource = new Map(learnedMappings.map((m) => [m.sourceLabel, m]));
+
+  const documentSeeds = rawDocumentSeeds.map((seed) => ({
+    ...seed,
+    fields: seed.fields.map((field) => {
+      const learned = learnedBySource.get(field.fieldName);
+      if (
+        learned &&
+        learned.timesUsed >= 1 &&
+        field.status !== "ignored" &&
+        !field.fieldName.startsWith("source_") &&
+        field.fieldName !== "extracted_text_preview"
+      ) {
+        return {
+          ...field,
+          confidence: new Prisma.Decimal(
+            Math.min(Number(field.confidence) + 0.1, 1),
+          ),
+          status: "reviewed",
+        };
+      }
+      return field;
+    }),
+  }));
+
   const extractedFields = documentSeeds.flatMap((document) => document.fields);
   const extractedCount = extractedFields.filter(
-    (field) => field.status === "extracted",
+    (field) => field.status === "extracted" || field.status === "reviewed",
   ).length;
   const needsReviewCount = extractedFields.length - extractedCount;
 
